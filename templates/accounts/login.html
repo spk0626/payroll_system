@@ -1,0 +1,36 @@
+{% extends "shared/auth_layout.html" %}
+
+{% block title %}{{ COMPANY_NAME }} Employee Login{% endblock %}
+{% block aria_label %}Employee payroll login{% endblock %}
+{% block brand_name %}{{ COMPANY_NAME }}{% endblock %}
+{% block brand_subtitle %}Payroll Portal{% endblock %}
+{% block hero_title %}Employee payroll access{% endblock %}
+{% block hero_copy %}Sign in to view your payroll workspace, account status, and employee self-service tools.{% endblock %}
+{% block panel_label %}Employee login form{% endblock %}
+{% block panel_kicker %}Payroll Portal{% endblock %}
+{% block panel_copy %}Use your employee account to continue to the dashboard.{% endblock %}
+
+{% block form_errors %}
+  {% if form.non_field_errors %}
+    <div class="form-error">{{ form.non_field_errors }}</div>
+  {% endif %}
+{% endblock %}
+
+{% block form %}
+  <form method="post" class="form-stack">
+    {% csrf_token %}
+    <div class="field">
+      <label for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+      {{ form.username.errors }}
+    </div>
+
+    <div class="field">
+      <label for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+      {{ form.password.errors }}
+    </div>
+
+    <button class="button button-full" type="submit">Sign in</button>
+  </form>
+{% endblock %}

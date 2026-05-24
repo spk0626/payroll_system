@@ -1,0 +1,39 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=14">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+  <main class="auth-page">
+    <section class="auth-composition" aria-label="{% block aria_label %}{% endblock %}">
+      <div class="auth-brand">
+        <div class="brand-lockup">
+          <div class="brand-mark">SA</div>
+          <div class="brand-text">
+            <div class="brand-name">{% block brand_name %}{{ COMPANY_NAME|default:"Syntax Asia" }}{% endblock %}</div>
+            <div class="brand-subtitle">{% block brand_subtitle %}{% endblock %}</div>
+          </div>
+        </div>
+        <div>
+          <h1>{% block hero_title %}{% endblock %}</h1>
+          <p>{% block hero_copy %}{% endblock %}</p>
+        </div>
+      </div>
+
+      <section class="auth-panel" aria-label="{% block panel_label %}{% endblock %}">
+        <p class="panel-kicker">{% block panel_kicker %}{% endblock %}</p>
+        <h2>Welcome back</h2>
+        <p class="panel-copy">{% block panel_copy %}{% endblock %}</p>
+
+        {% block form_errors %}{% endblock %}
+        {% block form %}{% endblock %}
+      </section>
+    </section>
+  </main>
+</body>
+</html>

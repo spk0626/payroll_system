@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=6">{% endblock %}
+
+{% block branding %}
+<div id="site-name" class="admin-brand">
+  <a href="{% url 'admin:index' %}">
+    <span class="admin-brand-mark">SA</span>
+    <span>
+      <span class="admin-brand-title">{{ site_header|default:_('Django administration') }}</span>
+      <span class="admin-brand-subtitle">Management portal</span>
+    </span>
+  </a>
+</div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

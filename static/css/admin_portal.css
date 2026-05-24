@@ -1,0 +1,191 @@
+:root {
+  --primary: #005f73;
+  --secondary: #004a5a;
+  --accent: #c99700;
+  --primary-fg: #ffffff;
+  --body-bg: #eef2f5;
+  --body-fg: #17212f;
+  --body-quiet-color: #647184;
+  --hairline-color: #d8e0e8;
+  --border-color: #d8e0e8;
+  --link-fg: #005f73;
+  --link-hover-color: #004a5a;
+  --button-bg: #005f73;
+  --button-hover-bg: #004a5a;
+  --default-button-bg: #005f73;
+  --default-button-hover-bg: #004a5a;
+  --font-family-primary: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+  --font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(201, 151, 0, 0.16), transparent 260px),
+    linear-gradient(135deg, rgba(0, 95, 115, 0.12), rgba(238, 242, 245, 0) 430px),
+    var(--body-bg);
+}
+
+#header {
+  min-height: 72px;
+  padding: 0 28px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--body-fg);
+  border-bottom: 1px solid var(--hairline-color);
+  box-shadow: 0 12px 34px rgba(23, 33, 47, 0.08);
+}
+
+.admin-brand a:link,
+.admin-brand a:visited {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--body-fg);
+  text-decoration: none;
+}
+
+.admin-brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  color: #ffffff;
+  background: var(--primary);
+  font-weight: 900;
+  font-size: 15px;
+}
+
+.admin-brand-title,
+.admin-brand-subtitle {
+  display: block;
+  line-height: 1.15;
+}
+
+.admin-brand-title {
+  font-weight: 850;
+  font-size: 16px;
+}
+
+.admin-brand-subtitle {
+  margin-top: 4px;
+  color: var(--body-quiet-color);
+  font-size: 14px;
+}
+
+#user-tools {
+  color: var(--body-quiet-color);
+  font-size: 14px;
+}
+
+#user-tools a,
+#logout-form button {
+  color: var(--primary);
+  border-radius: 999px;
+}
+
+div.breadcrumbs {
+  padding: 14px 28px;
+  color: #dceef1;
+  background: var(--secondary);
+}
+
+#content {
+  padding: 30px;
+}
+
+#content h1 {
+  margin-bottom: 22px;
+  font-size: 30px;
+  font-weight: 850;
+  color: var(--body-fg);
+}
+
+.module,
+#content-related,
+.inline-group {
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 14px 36px rgba(23, 33, 47, 0.08);
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+  padding: 15px 18px;
+  background: #e8f3f5;
+  color: var(--secondary);
+  font-weight: 850;
+  font-size: 16px;
+}
+
+.module table {
+  font-size: 15px;
+}
+
+.dashboard #content {
+  width: min(1180px, 100% - 32px);
+  margin: 0 auto;
+}
+
+.dashboard #content-main {
+  width: 68%;
+}
+
+.dashboard #content-related {
+  width: 28%;
+  margin-right: 0;
+}
+
+.app-payroll.module caption,
+.app-employees.module caption,
+.app-accounts.module caption {
+  background: #e8f3f5;
+}
+
+input,
+textarea,
+select,
+.vTextField {
+  border-radius: 14px;
+  border-color: #b8c5d1;
+  font-size: 16px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  outline: 3px solid rgba(0, 95, 115, 0.18);
+}
+
+.button,
+input[type=submit],
+input[type=button],
+.submit-row input,
+a.button {
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  #header {
+    padding: 14px 18px;
+  }
+
+  #content {
+    padding: 20px;
+  }
+
+  .dashboard #content-main,
+  .dashboard #content-related {
+    width: 100%;
+  }
+
+}

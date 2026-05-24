@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ COMPANY_NAME }} Employee Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=14">
+</head>
+<body>
+  <div class="dashboard-shell">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-mark">SA</div>
+        <div>
+          <div class="topbar-title">{{ COMPANY_NAME }}</div>
+          <div class="topbar-subtitle">Employee payroll portal</div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="button button-secondary" type="submit">Sign out</button>
+      </form>
+    </header>
+
+    <main class="page">
+      <section class="hero-band">
+        <div class="page-title">
+          <div class="status-pill"><span class="status-dot"></span> Signed in</div>
+          <h1>Employee Dashboard</h1>
+          <p>Welcome, {{ request.user.get_username }}. Your payroll workspace is ready.</p>
+        </div>
+      </section>
+
+      <section class="dashboard-grid" aria-label="Payroll overview">
+        <article class="metric-card">
+          <p class="metric-label">Account</p>
+          <p class="metric-value">Active</p>
+          <p class="metric-note">Employee access is enabled.</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Currency</p>
+          <p class="metric-value">{{ CURRENCY_SYMBOL }}</p>
+          <p class="metric-note">Configured payroll currency.</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Company</p>
+          <p class="metric-value">{{ COMPANY_NAME }}</p>
+          <p class="metric-note">Payroll administration workspace.</p>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="info-panel">
+          <h2>Payroll Activity</h2>
+          <div class="empty-state">
+            Payslip and salary activity will appear here when payroll processing screens are added.
+          </div>
+        </article>
+
+        <aside class="info-panel">
+          <h2>Profile</h2>
+          <div class="detail-list">
+            <div class="detail-row">
+              <span>Username</span>
+              <strong>{{ request.user.get_username }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Status</span>
+              <strong>Authenticated</strong>
+            </div>
+            <div class="detail-row">
+              <span>Portal</span>
+              <strong>Employee</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
