@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Print Payslip - {{ paysheet.get_month_display_name }} {{ paysheet.year }}</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
+  <link rel="stylesheet" href="{% static 'css/print.css' %}">
+</head>
+<body class="print-page">
+  <main class="print-sheet">
+    <header class="print-header">
+      <div>
+        <h1>{{ COMPANY_NAME }}</h1>
+        <p>Payslip for {{ paysheet.get_month_display_name }} {{ paysheet.year }}</p>
+      </div>
+      <button class="button print-action" type="button" onclick="window.print()">Print</button>
+    </header>
+
+    <section class="detail-list">
+      <div class="detail-row">
+        <span>Employee</span>
+        <strong>{{ paysheet.employee.full_name }}</strong>
+      </div>
+      <div class="detail-row">
+        <span>Employee number</span>
+        <strong>{{ paysheet.employee.employee_number }}</strong>
+      </div>
+      <div class="detail-row">
+        <span>Gross total</span>
+        <strong>{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</strong>
+      </div>
+    </section>
+
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for label, amount in paysheet.breakdown.items %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ CURRENCY_SYMBOL }} {{ amount }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

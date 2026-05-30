@@ -199,6 +199,47 @@ class UploadBatch(models.Model):
         return f"{self.category.name} — {month_name} {self.year} ({self.status})"
 
 
+class CategoryParserConfig(models.Model):
+    """
+    Per-category Excel parser settings.
+
+    Each employee category can have a different upload sheet layout. Keeping
+    this as data lets admins configure parser labels without code changes.
+    """
+
+    category = models.OneToOneField(
+        EmployeeCategory,
+        on_delete=models.CASCADE,
+        related_name="parser_config",
+        verbose_name=_("Employee category"),
+    )
+    emp_id_row_label = models.CharField(
+        max_length=100,
+        default="Employee",
+        verbose_name=_("Employee ID row label"),
+        help_text=_("Text in column A that identifies the employee number row."),
+    )
+    fixed_info_row_labels = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name=_("Fixed information row labels"),
+        help_text=_("JSON list of non-salary rows to skip during parsing."),
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name=_("Notes"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Category parser configuration")
+        verbose_name_plural = _("Category parser configurations")
+
+    def __str__(self) -> str:
+        return f"Parser config for {self.category.name}"
+
+
 class EmailLog(models.Model):
     """
     Tracks every payslip email notification attempt.
