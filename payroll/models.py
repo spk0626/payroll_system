@@ -1,18 +1,9 @@
 """
-Payroll models: PaySheet, UploadBatch, EmailLog.
+Payroll models: CategoryParserConfig, PaySheet, UploadBatch, EmailLog.
 
-Design notes:
-- PaySheet uses a UUID as its primary key. This is the public identifier
-  used in all employee-facing URLs. Sequential integers would allow IDOR
-  attacks (employee guessing other employees' payslip URLs by incrementing).
-- breakdown is a JSONField storing {component_name: amount} for the month.
-  Completely dynamic — no hardcoded salary components anywhere.
-- category_snapshot is set at upload time and never changes, preserving
-  historical accuracy even if the employee moves to a different category later.
-- gross_total is computed at upload time and stored for fast rendering
-  and future reporting. It is always the sum of all positive breakdown values.
-- UploadBatch records every file upload with its processing log and warnings,
-  giving admins a full audit trail of how salary data entered the system.
+CategoryParserConfig stores per-category parsing rules for dynamic Excel
+salary sheets. PaySheet stores one employee's salary breakdown for a month
+behind a UUID public identifier to prevent sequential ID guessing.
 """
 
 import uuid
@@ -201,43 +192,63 @@ class UploadBatch(models.Model):
 
 class CategoryParserConfig(models.Model):
     """
-    Per-category Excel parser settings.
+    Tells the Excel parser how to interpret a sheet for a given category.
 
-    Each employee category can have a different upload sheet layout. Keeping
-    this as data lets admins configure parser labels without code changes.
+    Because Excel sheets have no fixed structure, the admin configures once:
+    - emp_id_row_label: label in column A whose row contains employee numbers
+    - fixed_info_row_labels: labels to skip because they are not salary components
+
+    Everything in column A that is not the id row and not in fixed_info_row_labels
+    is treated as a salary component and included in the breakdown JSON.
     """
 
     category = models.OneToOneField(
         EmployeeCategory,
         on_delete=models.CASCADE,
         related_name="parser_config",
-        verbose_name=_("Employee category"),
+        verbose_name=_("Category"),
     )
     emp_id_row_label = models.CharField(
-        max_length=100,
+        max_length=200,
         default="Employee",
         verbose_name=_("Employee ID row label"),
-        help_text=_("Text in column A that identifies the employee number row."),
+        help_text=_(
+            "The exact label in column A that identifies the row containing "
+            'employee numbers. Case-insensitive match. Example: "Employee", '
+            '"Emp No.", "Staff ID"'
+        ),
     )
     fixed_info_row_labels = models.JSONField(
         default=list,
         blank=True,
-        verbose_name=_("Fixed information row labels"),
-        help_text=_("JSON list of non-salary rows to skip during parsing."),
+        verbose_name=_("Fixed info row labels"),
+        help_text=_(
+            "JSON list of row labels to skip - these are informational rows, "
+            'not salary components. Example: ["Employee Name", "Designation", "Department"]'
+        ),
     )
     notes = models.TextField(
         blank=True,
         verbose_name=_("Notes"),
+        help_text=_("Optional: describe the expected sheet format for this category."),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _("Category parser configuration")
-        verbose_name_plural = _("Category parser configurations")
+        verbose_name = _("Category parser config")
+        verbose_name_plural = _("Category parser configs")
 
     def __str__(self) -> str:
         return f"Parser config for {self.category.name}"
+
+    def get_fixed_labels_normalized(self) -> set[str]:
+        """Return fixed labels as lowercase stripped strings for matching."""
+        return {label.strip().lower() for label in (self.fixed_info_row_labels or [])}
+
+    @property
+    def emp_id_label_normalized(self) -> str:
+        return self.emp_id_row_label.strip().lower()
 
 
 class EmailLog(models.Model):

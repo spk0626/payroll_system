@@ -7,7 +7,7 @@ Manual edits to PaySheet JSON are supported for corrections.
 """
 
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from core.constants import MONTHS, BatchStatus, EmailStatus
 from .models import EmailLog, PaySheet, UploadBatch
@@ -74,8 +74,8 @@ class UploadBatchAdmin(admin.ModelAdmin):
     def warnings_formatted(self, obj):
         if not obj.warnings:
             return "No warnings."
-        items = "".join(f"<li>{w}</li>" for w in obj.warnings)
-        return format_html("<ul>{}</ul>", format_html(items))
+        items = format_html_join("", "<li>{}</li>", ((warning,) for warning in obj.warnings))
+        return format_html("<ul>{}</ul>", items)
 
 
 @admin.register(PaySheet)

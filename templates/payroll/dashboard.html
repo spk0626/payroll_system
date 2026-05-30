@@ -1,70 +1,87 @@
-<!doctype html>
-<html lang="en">
-<head>
-  {% load static %}
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Payslips - {{ COMPANY_NAME }}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
-</head>
-<body>
-  <div class="dashboard-shell">
-    <header class="topbar">
-      <div class="topbar-brand">
-        <div class="brand-mark">SA</div>
-        <div>
-          <div class="topbar-title">{{ COMPANY_NAME }}</div>
-          <div class="topbar-subtitle">Payslip Portal</div>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <span>{{ employee.full_name|default:request.user.get_username }}</span>
-        <form method="post" action="{% url 'accounts:logout' %}">
-          {% csrf_token %}
-          <button class="button button-secondary" type="submit">Sign out</button>
-        </form>
-      </div>
-    </header>
+{% extends "base.html" %}
+{% load static %}
 
-    <main class="page page-narrow">
-      <section class="hero-band">
-        <div class="page-title">
-          <div class="status-pill"><span class="status-dot"></span> Signed in</div>
-          <h1>Your payslips</h1>
-          <p>Select a month to view your full salary breakdown.</p>
-        </div>
-      </section>
+{% block title %}My Payslips - {{ COMPANY_NAME }}{% endblock %}
+{% block body_class %}portal-page{% endblock %}
 
-      {% if entries %}
-        <section class="payslip-list" aria-label="Available payslips">
-          {% for entry in entries %}
-            <a href="{% url 'payroll:payslip_detail' entry.id %}" class="payslip-card">
-              <div>
-                <div class="payslip-card-period">
-                  {{ entry.get_month_display_name }} {{ entry.year }}
-                  {% if forloop.first %}
-                    <span class="badge">Latest</span>
-                  {% endif %}
-                </div>
-                <div class="payslip-card-sub">Updated {{ entry.updated_at|date:"d M Y" }}</div>
-              </div>
-              <div class="payslip-card-side">
-                <div>
-                  <div class="payslip-card-label">Gross total</div>
-                  <div class="payslip-card-total">{{ CURRENCY_SYMBOL }} {{ entry.gross_total|floatformat:2 }}</div>
-                </div>
-                <span class="payslip-card-arrow" aria-hidden="true">&rsaquo;</span>
-              </div>
-            </a>
-          {% endfor %}
-        </section>
-      {% else %}
-        <section class="info-panel empty-state">
-          <h2>No payslips available yet</h2>
-          <p>Your payslips will appear here once salary is processed.</p>
-        </section>
-      {% endif %}
-    </main>
+{% block extra_css %}
+<style>
+.portal-header{background:#1a3a5c;color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.portal-header__title{font-size:16px;font-weight:600}
+.portal-header__user{font-size:13px;opacity:.8;display:flex;align-items:center;gap:1rem}
+.portal-main{max-width:720px;margin:2rem auto;padding:0 1rem}
+.portal-welcome{margin-bottom:2rem}
+.portal-welcome h1{font-size:22px;font-weight:600;color:#1a3a5c;margin-bottom:.25rem}
+.portal-welcome p{color:#666;font-size:14px}
+.payslip-list{display:flex;flex-direction:column;gap:.75rem}
+.payslip-card{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+.payslip-card:hover{border-color:#2e75b6;box-shadow:0 2px 8px rgba(46,117,182,.12)}
+.payslip-card__period{font-weight:600;color:#1a3a5c;font-size:15px}
+.payslip-card__sub{font-size:12px;color:#888;margin-top:.2rem}
+.payslip-card__amount{text-align:right}
+.payslip-card__total{font-weight:700;color:#1a3a5c;font-size:16px}
+.payslip-card__label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
+.payslip-card__arrow{color:#ccc;font-size:20px;margin-left:.75rem}
+.payslip-empty{text-align:center;padding:3rem;color:#888}
+.payslip-empty__icon{font-size:48px;margin-bottom:1rem}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:11px;font-weight:600}
+.badge--new{background:#e3f2fd;color:#1565c0}
+@media (max-width: 640px){
+  .portal-header{align-items:flex-start;flex-direction:column;gap:.75rem;padding:1rem}
+  .portal-header__user{align-items:flex-start;flex-direction:column;gap:.5rem}
+  .payslip-card{align-items:flex-start;flex-direction:column}
+  .payslip-card__amount{text-align:left}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="portal-header">
+  <span class="portal-header__title">{{ COMPANY_NAME }} - Payslip Portal</span>
+  <span class="portal-header__user">
+    {{ employee.full_name }}
+    <form method="post" action="{% url 'accounts:logout' %}" style="margin:0">
+      {% csrf_token %}
+      <button type="submit" style="background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;padding:0;text-decoration:underline">Sign out</button>
+    </form>
+  </span>
+</header>
+
+<main class="portal-main">
+  <div class="portal-welcome">
+    <h1>Your payslips</h1>
+    <p>Select a month to view your full salary breakdown.</p>
   </div>
-</body>
-</html>
+
+  {% if entries %}
+    <div class="payslip-list" role="list">
+      {% for entry in entries %}
+        <a href="{% url 'payroll:payslip_detail' entry.uuid %}" class="payslip-card" role="listitem">
+          <div>
+            <div class="payslip-card__period">
+              {{ entry.month_name }} {{ entry.year }}
+              {% if forloop.first %}
+                <span class="badge badge--new">Latest</span>
+              {% endif %}
+            </div>
+            <div class="payslip-card__sub">Updated {{ entry.updated_at|date:"d M Y" }}</div>
+          </div>
+          <div style="display:flex;align-items:center">
+            <div class="payslip-card__amount">
+              <div class="payslip-card__label">Gross total</div>
+              <div class="payslip-card__total">{{ CURRENCY_SYMBOL }} {{ entry.gross_total|floatformat:2 }}</div>
+            </div>
+            <span class="payslip-card__arrow">&rsaquo;</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="payslip-empty">
+      <div class="payslip-empty__icon">Payslips</div>
+      <p>No payslips available yet.</p>
+      <p style="font-size:13px;margin-top:.5rem">Your payslips will appear here once salary is processed.</p>
+    </div>
+  {% endif %}
+</main>
+{% endblock %}

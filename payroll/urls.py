@@ -1,12 +1,10 @@
-"""URL patterns for the employee self-service portal."""
-
 from django.urls import path
 from . import views
 
 app_name = "payroll"
 
 urlpatterns = [
-    path("", views.dashboard, name="dashboard"),
-    path("payslip/<uuid:paysheet_id>/", views.payslip_detail, name="payslip_detail"),
-    path("payslip/<uuid:paysheet_id>/print/", views.payslip_print, name="payslip_print"),
+    path("", views.DashboardView.as_view(), name="dashboard"),
+    path("payslip/<uuid:uuid>/", views.PayslipDetailView.as_view(), name="payslip_detail"),
+    path("payslip/<uuid:uuid>/print/", views.PayslipPrintView.as_view(), name="payslip_print"),
 ]

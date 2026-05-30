@@ -1,73 +1,120 @@
-<!doctype html>
-<html lang="en">
-<head>
-  {% load static %}
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Payslip - {{ paysheet.get_month_display_name }} {{ paysheet.year }}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
-</head>
-<body>
-  <div class="dashboard-shell">
-    <header class="topbar">
-      <div class="topbar-brand">
-        <div class="brand-mark">SA</div>
-        <div>
-          <div class="topbar-title">{{ COMPANY_NAME }}</div>
-          <div class="topbar-subtitle">Payslip Portal</div>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <a class="button button-secondary" href="{% url 'payroll:dashboard' %}">Back</a>
-        <a class="button" href="{% url 'payroll:payslip_print' paysheet.id %}">Print</a>
-      </div>
-    </header>
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ month_name }} {{ paysheet.year }} Payslip - {{ COMPANY_NAME }}{% endblock %}
+{% block body_class %}portal-page{% endblock %}
 
-    <main class="page page-narrow">
-      <section class="hero-band">
-        <div class="page-title">
-          <div class="status-pill"><span class="status-dot"></span> Payslip</div>
-          <h1>{{ paysheet.get_month_display_name }} {{ paysheet.year }}</h1>
-          <p>{{ paysheet.employee.full_name }} - {{ paysheet.employee.employee_number }}</p>
-        </div>
-      </section>
+{% block extra_css %}
+<style>
+.portal-header{background:#1a3a5c;color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.portal-header__left{display:flex;align-items:center;gap:1rem}
+.portal-header__back{color:rgba(255,255,255,.75);text-decoration:none;font-size:13px}
+.portal-header__back:hover{color:#fff}
+.portal-header__title{font-size:15px;font-weight:600}
+.portal-header__actions{display:flex;gap:.75rem}
+.portal-main{max-width:680px;margin:2rem auto;padding:0 1rem}
+.slip-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden}
+.slip-card__top{background:#f5f7fa;border-bottom:1px solid #e0e0e0;padding:1.25rem 1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.slip-card__period{font-size:20px;font-weight:700;color:#1a3a5c}
+.slip-card__emp{font-size:13px;color:#666;margin-top:.2rem}
+.slip-card__gross{text-align:right}
+.slip-card__gross-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#999}
+.slip-card__gross-amount{font-size:22px;font-weight:700;color:#1a3a5c}
+.slip-card__info{padding:.75rem 1.5rem;background:#fafafa;border-bottom:1px solid #efefef;display:grid;grid-template-columns:1fr 1fr;gap:.4rem .5rem;font-size:13px}
+.slip-info-row{display:flex;gap:.5rem}
+.slip-info-row__label{font-weight:600;color:#555;min-width:120px;white-space:nowrap}
+.slip-info-row__value{color:#222}
+table.breakdown{width:100%;border-collapse:collapse}
+table.breakdown thead th{background:#1a3a5c;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:.6rem 1.5rem;text-align:left;font-weight:600}
+table.breakdown thead th:last-child{text-align:right}
+table.breakdown tbody tr:nth-child(even){background:#f9fbfd}
+table.breakdown tbody td{padding:.65rem 1.5rem;font-size:14px;border-bottom:1px solid #eef1f5;color:#333}
+table.breakdown tbody td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-family:monospace;font-size:13.5px}
+table.breakdown tfoot td{padding:.8rem 1.5rem;font-size:15px;font-weight:700;color:#fff;background:#1a3a5c}
+table.breakdown tfoot td:last-child{text-align:right}
+.slip-card__footer{padding:.75rem 1.5rem;font-size:11px;color:#aaa;font-style:italic;border-top:1px solid #f0f0f0}
+.btn-sm{display:inline-flex;align-items:center;gap:.375rem;height:34px;padding:0 1rem;border-radius:6px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:background .15s}
+.btn-sm--outline{background:#fff;color:#1a3a5c;border-color:#c5d5e8}
+.btn-sm--outline:hover{background:#f0f4f8}
+.btn-sm--primary{background:#1a3a5c;color:#fff}
+.btn-sm--primary:hover{background:#0f2540}
+@media (max-width:640px){.portal-header{padding:1rem}.slip-card__info{grid-template-columns:1fr}.slip-card__gross{text-align:left}}
+</style>
+{% endblock %}
 
-      <section class="info-panel">
-        <div class="detail-list">
-          <div class="detail-row">
-            <span>Category</span>
-            <strong>{{ paysheet.category_snapshot|default:"Not assigned" }}</strong>
-          </div>
-          <div class="detail-row">
-            <span>Gross total</span>
-            <strong>{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</strong>
-          </div>
-        </div>
-
-        <div class="breakdown-table-wrap">
-          <table class="breakdown-table">
-            <thead>
-              <tr>
-                <th>Component</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for label, amount in paysheet.breakdown.items %}
-                <tr>
-                  <td>{{ label }}</td>
-                  <td>{{ CURRENCY_SYMBOL }} {{ amount }}</td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="2">No salary breakdown was recorded.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
+{% block content %}
+<header class="portal-header">
+  <div class="portal-header__left">
+    <a href="{% url 'payroll:dashboard' %}" class="portal-header__back">&larr; All payslips</a>
+    <span class="portal-header__title">{{ month_name }} {{ paysheet.year }}</span>
   </div>
-</body>
-</html>
+  <div class="portal-header__actions">
+    <a href="{% url 'payroll:payslip_print' paysheet.id %}" target="_blank" class="btn-sm btn-sm--outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / Save PDF
+    </a>
+  </div>
+</header>
+
+<main class="portal-main">
+  <div class="slip-card">
+    <div class="slip-card__top">
+      <div>
+        <div class="slip-card__period">{{ month_name }} {{ paysheet.year }}</div>
+        <div class="slip-card__emp">{{ employee.full_name }} &middot; {{ employee.employee_number }}</div>
+      </div>
+      <div class="slip-card__gross">
+        <div class="slip-card__gross-label">Gross total</div>
+        <div class="slip-card__gross-amount">{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</div>
+      </div>
+    </div>
+
+    <div class="slip-card__info">
+      <div class="slip-info-row">
+        <span class="slip-info-row__label">Category</span>
+        <span class="slip-info-row__value">{{ paysheet.category_snapshot.name|default:"-" }}</span>
+      </div>
+      <div class="slip-info-row">
+        <span class="slip-info-row__label">Branch</span>
+        <span class="slip-info-row__value">{{ employee.branch.name }}</span>
+      </div>
+      <div class="slip-info-row">
+        <span class="slip-info-row__label">Bank</span>
+        <span class="slip-info-row__value">{{ employee.bank_name }}</span>
+      </div>
+      <div class="slip-info-row">
+        <span class="slip-info-row__label">Account name</span>
+        <span class="slip-info-row__value">{{ employee.bank_account_name }}</span>
+      </div>
+    </div>
+
+    <table class="breakdown">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount ({{ CURRENCY_SYMBOL }})</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in breakdown_rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td>{{ row.amount|floatformat:2 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2" style="text-align:center;color:#aaa;padding:2rem">No breakdown data.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>Gross Total</td>
+          <td>{{ paysheet.gross_total|floatformat:2 }}</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="slip-card__footer">
+      Confidential - This payslip is intended solely for {{ employee.full_name }}. Do not distribute.
+    </div>
+  </div>
+</main>
+{% endblock %}
