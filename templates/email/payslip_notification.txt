@@ -1,0 +1,13 @@
+Hi {{ employee.full_name }},
+
+Your payslip for {{ month_name }} {{ paysheet.year }} is ready.
+
+SALARY BREAKDOWN
+{% for row in breakdown_rows %}{{ row.label }}: {{ currency_symbol }} {{ row.amount }}
+{% endfor %}
+GROSS TOTAL: {{ currency_symbol }} {{ paysheet.gross_total }}
+
+Log in to view and print your full payslip.
+
+{{ company_name }} — Payroll
+Confidential: This email is intended solely for {{ employee.full_name }}.
