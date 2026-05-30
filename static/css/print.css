@@ -1,0 +1,10 @@
+@media print {
+  .print-action {
+    display: none;
+  }
+
+  .print-sheet {
+    width: 100%;
+    margin: 0;
+  }
+}

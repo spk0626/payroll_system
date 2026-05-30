@@ -34,6 +34,14 @@ SESSION_COOKIE_SAMESITE = "Lax"
 
 CSRF_COOKIE_SECURE = True
 
+# django-ratelimit requires a shared cache with atomic increment support.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": config("MEMCACHED_LOCATION", default="127.0.0.1:11211"),
+    }
+}
+
 # ─── Error reporting ──────────────────────────────────────────────────────────
 _admins_email = config("ADMINS_EMAIL", default="")
 if _admins_email:

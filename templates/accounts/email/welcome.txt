@@ -1,15 +1,16 @@
 Welcome to {{ company_name }}
 
-Hello {{ employee.full_name }},
+Hi {{ employee.full_name }},
 
-Your payslip portal account has been created.
+Your payslip portal account is ready.
 
-Login at: {{ login_url }}
-Username: {{ employee.email }}
-Temporary password: {{ password }}
+  Login address: {{ login_url }}
+  Username:      {{ employee.email }}
+  Temp password: {{ password }}
 
-You will be asked to set a new password when you first log in.
+You will be asked to set a new password the first time you sign in.
+Please keep this email confidential — it contains your account credentials.
 
-If you did not expect this email, please contact HR immediately.
+If you did not expect this email, contact HR immediately.
 
-{{ company_name }} — Payroll
+{{ company_name }} Payroll
