@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=14">
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=15">
   {% block head_extra %}{% endblock %}
 </head>
 <body>
@@ -35,5 +35,24 @@
       </section>
     </section>
   </main>
+  <script>
+    document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+      var field = button.closest(".password-field");
+      var input = field ? field.querySelector("input") : null;
+
+      if (!input) {
+        return;
+      }
+
+      button.addEventListener("click", function () {
+        var isVisible = input.type === "text";
+        input.type = isVisible ? "password" : "text";
+        button.textContent = isVisible ? "Show" : "Hide";
+        button.setAttribute("aria-label", isVisible ? "Show password" : "Hide password");
+        button.setAttribute("aria-pressed", String(!isVisible));
+        input.focus();
+      });
+    });
+  </script>
 </body>
 </html>

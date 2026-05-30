@@ -4,8 +4,8 @@
   {% load static %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ COMPANY_NAME }} Employee Dashboard</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=14">
+  <title>My Payslips - {{ COMPANY_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
 </head>
 <body>
   <div class="dashboard-shell">
@@ -14,68 +14,56 @@
         <div class="brand-mark">SA</div>
         <div>
           <div class="topbar-title">{{ COMPANY_NAME }}</div>
-          <div class="topbar-subtitle">Employee payroll portal</div>
+          <div class="topbar-subtitle">Payslip Portal</div>
         </div>
       </div>
-      <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button class="button button-secondary" type="submit">Sign out</button>
-      </form>
+      <div class="topbar-actions">
+        <span>{{ employee.full_name|default:request.user.get_username }}</span>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="button button-secondary" type="submit">Sign out</button>
+        </form>
+      </div>
     </header>
 
-    <main class="page">
+    <main class="page page-narrow">
       <section class="hero-band">
         <div class="page-title">
           <div class="status-pill"><span class="status-dot"></span> Signed in</div>
-          <h1>Employee Dashboard</h1>
-          <p>Welcome, {{ request.user.get_username }}. Your payroll workspace is ready.</p>
+          <h1>Your payslips</h1>
+          <p>Select a month to view your full salary breakdown.</p>
         </div>
       </section>
 
-      <section class="dashboard-grid" aria-label="Payroll overview">
-        <article class="metric-card">
-          <p class="metric-label">Account</p>
-          <p class="metric-value">Active</p>
-          <p class="metric-note">Employee access is enabled.</p>
-        </article>
-        <article class="metric-card">
-          <p class="metric-label">Currency</p>
-          <p class="metric-value">{{ CURRENCY_SYMBOL }}</p>
-          <p class="metric-note">Configured payroll currency.</p>
-        </article>
-        <article class="metric-card">
-          <p class="metric-label">Company</p>
-          <p class="metric-value">{{ COMPANY_NAME }}</p>
-          <p class="metric-note">Payroll administration workspace.</p>
-        </article>
-      </section>
-
-      <section class="content-grid">
-        <article class="info-panel">
-          <h2>Payroll Activity</h2>
-          <div class="empty-state">
-            Payslip and salary activity will appear here when payroll processing screens are added.
-          </div>
-        </article>
-
-        <aside class="info-panel">
-          <h2>Profile</h2>
-          <div class="detail-list">
-            <div class="detail-row">
-              <span>Username</span>
-              <strong>{{ request.user.get_username }}</strong>
-            </div>
-            <div class="detail-row">
-              <span>Status</span>
-              <strong>Authenticated</strong>
-            </div>
-            <div class="detail-row">
-              <span>Portal</span>
-              <strong>Employee</strong>
-            </div>
-          </div>
-        </aside>
-      </section>
+      {% if entries %}
+        <section class="payslip-list" aria-label="Available payslips">
+          {% for entry in entries %}
+            <a href="{% url 'payroll:payslip_detail' entry.id %}" class="payslip-card">
+              <div>
+                <div class="payslip-card-period">
+                  {{ entry.get_month_display_name }} {{ entry.year }}
+                  {% if forloop.first %}
+                    <span class="badge">Latest</span>
+                  {% endif %}
+                </div>
+                <div class="payslip-card-sub">Updated {{ entry.updated_at|date:"d M Y" }}</div>
+              </div>
+              <div class="payslip-card-side">
+                <div>
+                  <div class="payslip-card-label">Gross total</div>
+                  <div class="payslip-card-total">{{ CURRENCY_SYMBOL }} {{ entry.gross_total|floatformat:2 }}</div>
+                </div>
+                <span class="payslip-card-arrow" aria-hidden="true">&rsaquo;</span>
+              </div>
+            </a>
+          {% endfor %}
+        </section>
+      {% else %}
+        <section class="info-panel empty-state">
+          <h2>No payslips available yet</h2>
+          <p>Your payslips will appear here once salary is processed.</p>
+        </section>
+      {% endif %}
     </main>
   </div>
 </body>

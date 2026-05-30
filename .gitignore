@@ -19,6 +19,7 @@ staticfiles/
 media/
 salary_uploads/
 logs/
+*.log
 
 # IDE
 .vscode/

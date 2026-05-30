@@ -2,17 +2,20 @@
 Admin configuration for the employees app.
 
 Design goals:
-- Every action should be obvious — admins should never need to google "how to do X"
-- Bulk actions are prominent and clearly labelled
-- Password reset is a single click with immediate feedback
-- Filters cover the most common admin workflows
+- Every action is obvious — admins should never need to google "how to do X"
+- Bulk category assignment is a dropdown action, one click
+- Password reset is a bulk action with immediate email confirmation
+- CategoryParserConfig is editable inline on the category page (set it once, forget it)
+- Status badges make employee state instantly readable at a glance
 """
 
 import logging
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.models import User
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from .models import Branch, Employee, EmployeeCategory
@@ -25,57 +28,86 @@ logger = logging.getLogger(__name__)
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
-    """
-    Simple admin for branch management.
-    Branches are referenced by employees, so they cannot be deleted
-    while employees are assigned (enforced by PROTECT on the FK).
-    """
-
     list_display = ["name", "location", "employee_count", "created_at"]
     search_fields = ["name", "location"]
     ordering = ["name"]
 
-    @admin.display(description="Employees")
+    @admin.display(description="Active employees")
     def employee_count(self, obj: Branch) -> int:
         return obj.employees.filter(is_active=True).count()
 
 
-# ─── EmployeeCategory ─────────────────────────────────────────────────────────
+# ─── EmployeeCategory (with inline parser config) ─────────────────────────────
+
+class CategoryParserConfigInline(admin.StackedInline):
+    """
+    Inline editor for parser config directly on the category page.
+
+    Admins set the parser config once when creating a category,
+    and it stays there. No need to navigate to a separate admin.
+    """
+
+    from payroll.models import CategoryParserConfig
+    model = CategoryParserConfig
+    extra = 1
+    max_num = 1
+    can_delete = False
+    verbose_name = "Excel parser configuration"
+    verbose_name_plural = "Excel parser configuration"
+
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": ["emp_id_row_label", "fixed_info_row_labels", "notes"],
+                "description": (
+                    "<strong>Employee ID row label</strong>: the text in column A "
+                    "that marks the employee number row (e.g. <code>Employee</code>, "
+                    "<code>Staff ID</code>).<br>"
+                    "<strong>Fixed info row labels</strong>: JSON list of rows to skip "
+                    "(not salary components). E.g. "
+                    '<code>["Employee Name", "Designation"]</code>'
+                ),
+            },
+        )
+    ]
+
 
 @admin.register(EmployeeCategory)
 class EmployeeCategoryAdmin(admin.ModelAdmin):
-    """
-    Admin for employee categories.
-
-    Categories are the primary grouping for payroll uploads. Each monthly
-    Excel file targets one category. Admins need to see at a glance how many
-    employees are in each category and what their names are.
-    """
-
-    list_display = ["name", "employee_count", "description_preview", "created_at"]
+    list_display = [
+        "name",
+        "employee_count",
+        "has_parser_config",
+        "description_preview",
+        "created_at",
+    ]
     search_fields = ["name", "description"]
     ordering = ["name"]
+    inlines = [CategoryParserConfigInline]
 
-    @admin.display(description="Employees")
+    @admin.display(description="Active employees")
     def employee_count(self, obj: EmployeeCategory) -> int:
         return obj.employees.filter(is_active=True).count()
+
+    @admin.display(description="Parser config")
+    def has_parser_config(self, obj: EmployeeCategory):
+        has = hasattr(obj, "parser_config")
+        if has:
+            return mark_safe('<span style="color:#2e7d32;font-weight:600;">✓ Configured</span>')
+        return mark_safe('<span style="color:#c62828;">✗ Not set — upload will fail</span>')
 
     @admin.display(description="Description")
     def description_preview(self, obj: EmployeeCategory) -> str:
         if not obj.description:
             return "—"
-        return obj.description[:80] + ("…" if len(obj.description) > 80 else "")
+        return (obj.description[:80] + "…") if len(obj.description) > 80 else obj.description
 
 
 # ─── Employee ─────────────────────────────────────────────────────────────────
 
 def _assign_to_category_action_factory(category):
-    """
-    Dynamically create a bulk action for assigning employees to a specific category.
-
-    Django admin bulk actions need to be defined per category, so we generate
-    them at registration time. This factory creates one action per category.
-    """
+    """Dynamically create a bulk 'Assign to category' action per existing category."""
 
     def assign_action(modeladmin, request, queryset):
         updated = queryset.update(category=category)
@@ -86,24 +118,13 @@ def _assign_to_category_action_factory(category):
         )
 
     assign_action.__name__ = f"assign_to_{category.pk}"
-    assign_action.short_description = f"Assign selected to: {category.name}"
+    assign_action.short_description = f"Assign selected → {category.name}"
     return assign_action
 
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    """
-    Main employee management interface.
-
-    Key design decisions:
-    - is_active filter is prominent (most common workflow: find active employees)
-    - Password reset is a button in the detail view, not buried in a submenu
-    - Category assignment is a bulk action available from the list view
-    - Bank details are in a collapsed fieldset (sensitive; not needed most times)
-    - The employee's login email is shown alongside their name
-    """
-
-    # ── List view ─────────────────────────────────────────────────────────
+    # ── List view ─────────────────────────────────────────────────────────────
     list_display = [
         "employee_number",
         "full_name",
@@ -120,32 +141,32 @@ class EmployeeAdmin(admin.ModelAdmin):
     ordering = ["full_name"]
     list_per_page = 50
     list_select_related = ["branch", "category", "user"]
+    date_hierarchy = "date_of_joining"
 
-    # ── Detail view ────────────────────────────────────────────────────────
+    # ── Detail view ────────────────────────────────────────────────────────────
     fieldsets = [
         (
             "Personal information",
             {
-                "fields": [
-                    "employee_number",
-                    "full_name",
-                    "email",
-                    "date_of_joining",
-                ],
+                "fields": ["employee_number", "full_name", "email", "date_of_joining"],
             },
         ),
         (
             "Organisation",
             {
                 "fields": ["branch", "category", "is_active"],
+                "description": (
+                    "Changing category does not affect historical payslips — "
+                    "they retain the category they were uploaded under."
+                ),
             },
         ),
         (
             "Bank details",
             {
-                "classes": ["collapse"],  # Collapsed by default — sensitive data
+                "classes": ["collapse"],
                 "fields": ["bank_name", "bank_account_name", "bank_branch_name"],
-                "description": "These details are shown on payslips.",
+                "description": "Shown on printed payslips. Expand to view or edit.",
             },
         ),
         (
@@ -154,22 +175,32 @@ class EmployeeAdmin(admin.ModelAdmin):
                 "classes": ["collapse"],
                 "fields": ["user", "must_change_password"],
                 "description": (
-                    "The User account is created automatically. "
-                    "Use the 'Reset password' action to generate a new password."
+                    "The user account is created automatically on employee creation. "
+                    "Use the Reset passwords action from the list view to generate a new password."
                 ),
             },
         ),
     ]
     readonly_fields = ["user"]
 
-    # ── Actions ───────────────────────────────────────────────────────────
+    def response_add(self, request, obj, post_url_continue=None):
+        password = getattr(obj, "_generated_password", None)
+        if password and settings.DEBUG:
+            self.message_user(
+                request,
+                (
+                    f"Temporary password for {obj.email}: {password} "
+                    "This is shown once because email uses the development console backend."
+                ),
+                messages.WARNING,
+            )
+        return super().response_add(request, obj, post_url_continue)
+
+    # ── Actions ───────────────────────────────────────────────────────────────
     actions = ["reset_passwords", "deactivate_employees", "activate_employees"]
 
     def get_actions(self, request):
-        """
-        Dynamically add one 'Assign to category' action per existing category.
-        This makes bulk assignment available without navigating to each employee.
-        """
+        """Add one 'Assign to category' action per existing category."""
         actions = super().get_actions(request)
         for category in EmployeeCategory.objects.all():
             action = _assign_to_category_action_factory(category)
@@ -180,77 +211,68 @@ class EmployeeAdmin(admin.ModelAdmin):
             )
         return actions
 
-    @admin.action(description="Reset passwords for selected employees")
+    @admin.action(description="🔑 Reset passwords for selected employees")
     def reset_passwords(self, request, queryset):
-        """
-        Generate a new random password for each selected employee.
-        The new password is emailed to the employee and shown in the admin message.
-        Sets must_change_password=True so they are prompted to change it on login.
-        """
-        results = []
+        """Generate a new password, email it, set must_change_password=True."""
+        count = 0
         for employee in queryset.select_related("user"):
             if not employee.user:
-                results.append(f"{employee.full_name}: no user account found")
                 continue
             new_password = _generate_secure_password()
             employee.user.set_password(new_password)
             employee.user.save(update_fields=["password"])
             employee.must_change_password = True
             employee.save(update_fields=["must_change_password", "updated_at"])
-            results.append(f"{employee.full_name} ({employee.email}): reset")
+            from .signals import _send_welcome_email
+            _send_welcome_email(employee, new_password)
+            count += 1
             logger.info(
-                "Password reset by admin %s for employee %s.",
+                "Password reset by %s for employee %s.",
                 request.user.username,
                 employee.employee_number,
             )
-            # Re-send welcome email with new password
-            from .signals import _send_welcome_email
-            _send_welcome_email(employee, new_password)
 
         self.message_user(
             request,
-            f"Passwords reset for {len(results)} employee(s). "
+            f"✓ Passwords reset for {count} employee(s). "
             "New passwords have been emailed to them.",
             messages.SUCCESS,
         )
 
-    @admin.action(description="Deactivate selected employees (preserve payslip history)")
+    @admin.action(description="🔒 Deactivate selected employees")
     def deactivate_employees(self, request, queryset):
-        count = 0
-        for employee in queryset:
-            if employee.is_active:
-                employee.deactivate()
-                count += 1
+        count = sum(1 for emp in queryset if emp.is_active and (emp.deactivate() or True))
         self.message_user(
             request,
-            f"{count} employee(s) deactivated. Their payslip history is preserved.",
+            f"{count} employee(s) deactivated. Payslip history preserved.",
             messages.SUCCESS,
         )
 
-    @admin.action(description="Re-activate selected employees")
+    @admin.action(description="🔓 Re-activate selected employees")
     def activate_employees(self, request, queryset):
         updated = queryset.update(is_active=True)
-        # Also re-activate their user accounts
         user_ids = queryset.values_list("user_id", flat=True)
         User.objects.filter(pk__in=user_ids).update(is_active=True)
-        self.message_user(
-            request,
-            f"{updated} employee(s) re-activated.",
-            messages.SUCCESS,
-        )
+        self.message_user(request, f"{updated} employee(s) re-activated.", messages.SUCCESS)
 
-    # ── Display helpers ───────────────────────────────────────────────────
+    # ── Display helpers ───────────────────────────────────────────────────────
 
     @admin.display(description="Status", ordering="is_active")
     def status_badge(self, obj: Employee):
         if obj.is_active:
-            return format_html('<span style="color:#2e7d32;font-weight:500;">● Active</span>')
-        return format_html('<span style="color:#c62828;font-weight:500;">● Inactive</span>')
+            return format_html(
+                '<span style="color:#2e7d32;font-weight:600;">● Active</span>'
+            )
+        return format_html(
+            '<span style="color:#c62828;font-weight:600;">● Inactive</span>'
+        )
 
-    @admin.display(description="Login account")
+    @admin.display(description="Login")
     def account_status(self, obj: Employee):
         if not obj.user:
             return format_html('<span style="color:#e65100;">⚠ No account</span>')
         if obj.must_change_password:
-            return format_html('<span style="color:#f57f17;">⚠ Password not changed</span>')
-        return format_html('<span style="color:#2e7d32;">✓ Active</span>')
+            return format_html(
+                '<span style="color:#f57f17;font-size:12px;">⚠ Temp password</span>'
+            )
+        return format_html('<span style="color:#2e7d32;font-size:12px;">✓ Active</span>')

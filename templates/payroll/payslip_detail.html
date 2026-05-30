@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payslip - {{ paysheet.get_month_display_name }} {{ paysheet.year }}</title>
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
+</head>
+<body>
+  <div class="dashboard-shell">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-mark">SA</div>
+        <div>
+          <div class="topbar-title">{{ COMPANY_NAME }}</div>
+          <div class="topbar-subtitle">Payslip Portal</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a class="button button-secondary" href="{% url 'payroll:dashboard' %}">Back</a>
+        <a class="button" href="{% url 'payroll:payslip_print' paysheet.id %}">Print</a>
+      </div>
+    </header>
+
+    <main class="page page-narrow">
+      <section class="hero-band">
+        <div class="page-title">
+          <div class="status-pill"><span class="status-dot"></span> Payslip</div>
+          <h1>{{ paysheet.get_month_display_name }} {{ paysheet.year }}</h1>
+          <p>{{ paysheet.employee.full_name }} - {{ paysheet.employee.employee_number }}</p>
+        </div>
+      </section>
+
+      <section class="info-panel">
+        <div class="detail-list">
+          <div class="detail-row">
+            <span>Category</span>
+            <strong>{{ paysheet.category_snapshot|default:"Not assigned" }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Gross total</span>
+            <strong>{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</strong>
+          </div>
+        </div>
+
+        <div class="breakdown-table-wrap">
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for label, amount in paysheet.breakdown.items %}
+                <tr>
+                  <td>{{ label }}</td>
+                  <td>{{ CURRENCY_SYMBOL }} {{ amount }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">No salary breakdown was recorded.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

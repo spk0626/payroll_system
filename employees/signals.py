@@ -110,7 +110,7 @@ def _send_welcome_email(employee: Employee, password: str) -> None:
             "employee": employee,
             "password": password,
             "company_name": settings.COMPANY_NAME,
-            "login_url": "your-domain.com/login/",  # overridden with real URL in D2
+            "login_url": f"{settings.SITE_URL.rstrip('/')}/login/",
         }
         body = render_to_string("accounts/email/welcome.txt", context)
         send_mail(

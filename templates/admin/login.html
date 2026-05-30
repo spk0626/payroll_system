@@ -37,7 +37,12 @@
     <div class="field">
       {{ form.password.errors }}
       {{ form.password.label_tag }}
-      {{ form.password }}
+      <div class="password-field">
+        {{ form.password }}
+        <button class="password-toggle" type="button" data-password-toggle aria-label="Show password" aria-pressed="false">
+          Show
+        </button>
+      </div>
       <input type="hidden" name="next" value="{{ next }}">
     </div>
     <button type="submit" class="button button-full">{% translate "Log in" %}</button>
