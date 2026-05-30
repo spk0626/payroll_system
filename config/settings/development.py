@@ -32,3 +32,12 @@ try:
     INTERNAL_IPS = ["127.0.0.1"]
 except ImportError:
     pass
+
+# django-ratelimit needs a cache backend. Use local memory cache in development.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
+}
+# Silence the ratelimit shared-cache warning in development only.
+SILENCED_SYSTEM_CHECKS = ["django_ratelimit.E003", "django_ratelimit.W001"]

@@ -17,19 +17,32 @@
 {% endblock %}
 
 {% block form %}
-  <form method="post" class="form-stack">
+  <form method="post" action="{% url 'accounts:login' %}" class="form-stack" novalidate>
     {% csrf_token %}
     <div class="field">
-      <label for="{{ form.username.id_for_label }}">Username</label>
+      <label for="{{ form.username.id_for_label }}">Email address</label>
       {{ form.username }}
       {{ form.username.errors }}
     </div>
 
     <div class="field">
-      <label for="{{ form.password.id_for_label }}">Password</label>
-      {{ form.password }}
+      <div class="form-label-row">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        <a href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+      </div>
+      <div class="password-field">
+        {{ form.password }}
+        <button class="password-toggle" type="button" data-password-toggle aria-label="Show password" aria-pressed="false">
+          Show
+        </button>
+      </div>
       {{ form.password.errors }}
     </div>
+
+    <label class="checkbox-label">
+      <input type="checkbox" name="remember_me">
+      <span>Remember me for 30 days</span>
+    </label>
 
     <button class="button button-full" type="submit">Sign in</button>
   </form>

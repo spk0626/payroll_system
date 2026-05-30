@@ -20,6 +20,11 @@ urlpatterns = [
     path("portal/", include("payroll.urls", namespace="payroll")),
 ]
 
+# Custom error handlers — prevent Django debug pages in production
+handler403 = "config.error_views.handler403"
+handler404 = "config.error_views.handler404"
+handler500 = "config.error_views.handler500"
+
 # Serve media files in development only
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
