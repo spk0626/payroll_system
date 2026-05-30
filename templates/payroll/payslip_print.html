@@ -1,54 +1,100 @@
 <!doctype html>
 <html lang="en">
 <head>
-  {% load static %}
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Print Payslip - {{ paysheet.get_month_display_name }} {{ paysheet.year }}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=16">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Payslip - {{ month_name }} {{ paysheet.year }} - {{ employee.full_name }}</title>
+  {% load static %}
   <link rel="stylesheet" href="{% static 'css/print.css' %}">
 </head>
-<body class="print-page">
-  <main class="print-sheet">
-    <header class="print-header">
-      <div>
-        <h1>{{ COMPANY_NAME }}</h1>
-        <p>Payslip for {{ paysheet.get_month_display_name }} {{ paysheet.year }}</p>
+<body class="{% if many_components %}many-components{% endif %}">
+  <div class="print-btn-bar">
+    <a href="{% url 'payroll:payslip_detail' paysheet.id %}" style="color:#555;font-size:13px;text-decoration:none">&larr; Back</a>
+    <button onclick="window.print()" style="background:#1a3a5c;color:#fff;border:none;padding:.5rem 1.5rem;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer">
+      Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="slip-page">
+    <header class="slip-header">
+      <div class="slip-header__company">
+        <div class="slip-header__company-name">{{ COMPANY_NAME }}</div>
+        {% if COMPANY_ADDRESS %}
+          <div class="slip-header__company-address">{{ COMPANY_ADDRESS }}</div>
+        {% endif %}
       </div>
-      <button class="button print-action" type="button" onclick="window.print()">Print</button>
+      <div class="slip-header__logo-placeholder" aria-hidden="true">
+        <svg viewBox="0 0 28 28" fill="none" width="28" height="28">
+          <path d="M6 20l4.5-11h2l2 6 2-6h2L23 20h-2.5l-3-8-3 8H6z" fill="#fff" opacity=".9"/>
+        </svg>
+      </div>
     </header>
 
-    <section class="detail-list">
-      <div class="detail-row">
-        <span>Employee</span>
-        <strong>{{ paysheet.employee.full_name }}</strong>
-      </div>
-      <div class="detail-row">
-        <span>Employee number</span>
-        <strong>{{ paysheet.employee.employee_number }}</strong>
-      </div>
-      <div class="detail-row">
-        <span>Gross total</span>
-        <strong>{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</strong>
-      </div>
-    </section>
+    <div class="slip-title">
+      <h1>Salary Payslip</h1>
+      <p>{{ month_name }} {{ paysheet.year }}</p>
+    </div>
 
-    <table class="breakdown-table">
+    <div class="slip-info">
+      <div class="slip-info__item">
+        <span class="slip-info__label">Employee No:</span>
+        <span class="slip-info__value">{{ employee.employee_number }}</span>
+      </div>
+      <div class="slip-info__item">
+        <span class="slip-info__label">Category:</span>
+        <span class="slip-info__value">{{ paysheet.category_snapshot.name|default:"-" }}</span>
+      </div>
+      <div class="slip-info__item">
+        <span class="slip-info__label">Name:</span>
+        <span class="slip-info__value">{{ employee.full_name }}</span>
+      </div>
+      <div class="slip-info__item">
+        <span class="slip-info__label">Branch:</span>
+        <span class="slip-info__value">{{ employee.branch.name }}</span>
+      </div>
+      <div class="slip-info__item">
+        <span class="slip-info__label">Bank:</span>
+        <span class="slip-info__value">{{ employee.bank_name }} - {{ employee.bank_branch_name }}</span>
+      </div>
+      <div class="slip-info__item">
+        <span class="slip-info__label">Account Name:</span>
+        <span class="slip-info__value">{{ employee.bank_account_name }}</span>
+      </div>
+    </div>
+
+    <table class="slip-table">
       <thead>
         <tr>
-          <th>Component</th>
-          <th>Amount</th>
+          <th>Description</th>
+          <th style="text-align:right">Amount ({{ CURRENCY_SYMBOL }})</th>
         </tr>
       </thead>
       <tbody>
-        {% for label, amount in paysheet.breakdown.items %}
+        {% for row in breakdown_rows %}
           <tr>
-            <td>{{ label }}</td>
-            <td>{{ CURRENCY_SYMBOL }} {{ amount }}</td>
+            <td>{{ row.label }}</td>
+            <td style="text-align:right">{{ row.amount|floatformat:2 }}</td>
           </tr>
+        {% empty %}
+          <tr><td colspan="2" style="text-align:center;color:#aaa">No data</td></tr>
         {% endfor %}
       </tbody>
+      <tfoot>
+        <tr>
+          <td>Gross Total</td>
+          <td style="text-align:right">{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</td>
+        </tr>
+      </tfoot>
     </table>
-  </main>
+
+    <footer class="slip-footer">
+      <span class="slip-footer__notice">
+        Confidential - Intended solely for {{ employee.full_name }}. Do not distribute.
+      </span>
+      <span class="slip-footer__generated">
+        Generated {{ paysheet.updated_at|date:"d M Y" }}
+      </span>
+    </footer>
+  </div>
 </body>
 </html>

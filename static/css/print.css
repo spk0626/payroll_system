@@ -1,10 +1,228 @@
+/*
+ * print.css - A4 single-page payslip guarantee
+ *
+ * This file is ONLY loaded in the print view template.
+ * The design contract: no matter how many salary components exist,
+ * the payslip fits on exactly one A4 page.
+ */
+
+@page {
+  size: A4 portrait;
+  margin: 1cm 1.2cm;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  max-width: 100%;
+  color: #111;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.slip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1a3a5c;
+  margin-bottom: 10px;
+}
+
+.slip-header__company-name {
+  color: #1a3a5c;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.slip-header__company-address {
+  margin-top: 2px;
+  color: #555;
+  font-size: 9px;
+}
+
+.slip-header__logo-placeholder {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #fff;
+  background: #1a3a5c;
+  font-weight: 700;
+}
+
+.slip-title {
+  text-align: center;
+  margin: 8px 0;
+}
+
+.slip-title h1 {
+  color: #1a3a5c;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.slip-title p {
+  color: #555;
+  font-size: 10px;
+}
+
+.slip-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 24px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #d0d8e4;
+  border-radius: 4px;
+  background: #f5f7fa;
+}
+
+.slip-info__item {
+  display: flex;
+  gap: 6px;
+}
+
+.slip-info__label {
+  min-width: 110px;
+  color: #333;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.slip-info__value {
+  color: #111;
+}
+
+.slip-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.slip-table thead tr,
+.slip-table tfoot tr {
+  background: #1a3a5c;
+}
+
+.slip-table thead th {
+  padding: 5px 8px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.slip-table thead th:last-child,
+.slip-table tbody td:last-child,
+.slip-table tfoot td:last-child {
+  text-align: right;
+}
+
+.slip-table tbody tr:nth-child(even) {
+  background: #f0f4f8;
+}
+
+.slip-table tbody td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #e0e7ef;
+  font-size: 10.5px;
+}
+
+.slip-table tbody td:last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.slip-table tfoot td {
+  padding: 6px 8px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.many-components .slip-table tbody td {
+  font-size: 9px;
+  padding: 2.5px 8px;
+}
+
+.many-components .slip-info {
+  font-size: 9px;
+}
+
+.many-components .slip-title h1 {
+  font-size: 11px;
+}
+
+.many-components .slip-header__company-name {
+  font-size: 13px;
+}
+
+.slip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid #d0d8e4;
+  margin-top: auto;
+}
+
+.slip-footer__notice,
+.slip-footer__generated {
+  color: #888;
+  font-size: 8px;
+}
+
+.slip-footer__notice {
+  font-style: italic;
+}
+
+.slip-footer__generated {
+  color: #aaa;
+}
+
+.print-btn-bar {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #d0d8e4;
+  background: #f0f4f8;
+}
+
 @media print {
-  .print-action {
-    display: none;
+  .print-btn-bar {
+    display: none !important;
+  }
+}
+
+@media screen {
+  body {
+    background: #e8ecf0;
   }
 
-  .print-sheet {
-    width: 100%;
-    margin: 0;
+  .slip-page {
+    width: 210mm;
+    min-height: 297mm;
+    display: flex;
+    flex-direction: column;
+    margin: 1rem auto;
+    padding: 1.2cm;
+    background: #fff;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, .12);
   }
 }
