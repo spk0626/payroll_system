@@ -161,8 +161,9 @@ Output Directory: leave blank
 Run Command: leave blank
 ```
 
-Do not set a Python `runtime` value in `vercel.json`. Vercel detects the
-official Python runtime from the Django/Python project files and `.python-version`.
+Do not set Python `runtime` or manual `functions` entries in `vercel.json`.
+Vercel detects Django from `manage.py`, then uses the WSGI entrypoint and static
+configuration from the Django project.
 
 Required Vercel environment variables:
 
