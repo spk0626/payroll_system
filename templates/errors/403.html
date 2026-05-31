@@ -1,14 +1,24 @@
-{% extends "base.html" %}
-
-{% block title %}Access denied - {{ COMPANY_NAME }}{% endblock %}
-{% block body_class %}auth-page{% endblock %}
-
-{% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card">
-    <h1 class="auth-card__title">Access denied</h1>
-    <p class="auth-card__subtitle">You do not have permission to view this page.</p>
-    <a class="btn btn--primary btn--full" href="{% url 'accounts:login' %}">Back to sign in</a>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Access denied - {{ COMPANY_NAME }}</title>
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f0f4f8;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#333}
+    .card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:3rem 2.5rem;max-width:420px;width:100%;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,.06)}
+    .icon{font-size:40px;margin-bottom:1rem}
+    h1{font-size:22px;color:#1a3a5c;margin:0 0 .5rem}
+    p{color:#666;font-size:15px;line-height:1.6;margin:0 0 1.5rem}
+    .btn{display:inline-block;padding:.6rem 1.5rem;background:#1a3a5c;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" aria-hidden="true">403</div>
+    <h1>Access denied</h1>
+    <p>You do not have permission to view this page.<br>If you think this is a mistake, please contact HR.</p>
+    <a href="{% url 'accounts:login' %}" class="btn">Go to login</a>
   </div>
-</div>
-{% endblock %}
+</body>
+</html>
