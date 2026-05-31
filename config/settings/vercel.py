@@ -30,5 +30,6 @@ CACHES = {
 SILENCED_SYSTEM_CHECKS = ["django_ratelimit.E003", "django_ratelimit.W001"]
 
 # Runtime filesystem is ephemeral; log to stdout/stderr.
+LOGGING["handlers"].pop("file", None)  # noqa: F405
 LOGGING["root"]["handlers"] = ["console"]  # noqa: F405
 LOGGING["loggers"]["django"]["handlers"] = ["console"]  # noqa: F405
