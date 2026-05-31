@@ -158,7 +158,7 @@ Project settings:
 Framework Preset: Other
 Install Command: python -m pip install --break-system-packages -r requirements.txt
 Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
-Output Directory: leave blank
+Output Directory: staticfiles
 Run Command: leave blank
 ```
 
