@@ -6,7 +6,6 @@ without pulling in the full model layer.
 """
 
 import os
-import magic  # python-magic; install: pip install python-magic
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
@@ -48,6 +47,8 @@ def validate_excel_file(file) -> None:
 
     # Check magic bytes (actual file content)
     try:
+        import magic  # python-magic; requires the native libmagic library
+
         file.seek(0)
         header = file.read(8)
         file.seek(0)

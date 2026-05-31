@@ -10,14 +10,36 @@ This file owns the admin-side payroll interface:
 
 import logging
 
+from django import forms
 from django.contrib import admin, messages
+from django.shortcuts import redirect, render
+from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 
 from core.constants import MONTHS, BatchStatus, EmailStatus
+from core.validators import validate_excel_file
+from employees.models import EmployeeCategory
 from .models import CategoryParserConfig, EmailLog, PaySheet, UploadBatch
 
 logger = logging.getLogger(__name__)
+
+
+class SalaryUploadForm(forms.Form):
+    category = forms.ModelChoiceField(
+        queryset=EmployeeCategory.objects.order_by("name"),
+        help_text="Only active employees in this category will be matched.",
+    )
+    month = forms.ChoiceField(choices=MONTHS)
+    year = forms.IntegerField(min_value=2000, max_value=2100)
+    salary_file = forms.FileField(
+        help_text="Upload a .xlsx file. Column A contains labels; employee numbers are read from the configured ID row."
+    )
+
+    def clean_salary_file(self):
+        salary_file = self.cleaned_data["salary_file"]
+        validate_excel_file(salary_file)
+        return salary_file
 
 
 @admin.register(CategoryParserConfig)
@@ -107,6 +129,7 @@ class UploadBatchAdmin(admin.ModelAdmin):
     ]
     ordering = ["-created_at"]
     actions = ["send_payslip_emails", "retry_failed_emails_action"]
+    change_list_template = "admin/payroll/uploadbatch/change_list.html"
 
     fieldsets = [
         (
@@ -142,6 +165,87 @@ class UploadBatchAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "upload-salary-sheet/",
+                self.admin_site.admin_view(self.upload_salary_sheet),
+                name="payroll_uploadbatch_upload",
+            ),
+        ]
+        return custom_urls + urls
+
+    def upload_salary_sheet(self, request):
+        """
+        Upload, parse, and commit one monthly salary sheet from the admin.
+
+        CategoryParserConfig remains the source of truth for how each category's
+        Excel file is interpreted.
+        """
+        if request.method == "POST":
+            form = SalaryUploadForm(request.POST, request.FILES)
+            if form.is_valid():
+                category = form.cleaned_data["category"]
+                month = int(form.cleaned_data["month"])
+                year = form.cleaned_data["year"]
+                salary_file = form.cleaned_data["salary_file"]
+
+                from payroll.services.upload_service import (
+                    build_diff,
+                    commit_diff,
+                    save_upload_file,
+                )
+
+                abs_path, batch = save_upload_file(
+                    salary_file,
+                    category=category,
+                    month=month,
+                    year=year,
+                    user=request.user,
+                )
+                diff = build_diff(abs_path, category, month=month, year=year, batch=batch)
+
+                if diff.has_fatal_errors:
+                    self.message_user(
+                        request,
+                        "Upload failed: " + " ".join(diff.errors),
+                        messages.ERROR,
+                    )
+                    return redirect("admin:payroll_uploadbatch_change", batch.pk)
+
+                batch = commit_diff(
+                    diff,
+                    remove_absent_ids=[],
+                    category=category,
+                    month=month,
+                    year=year,
+                )
+                warning_note = f" Warnings: {len(diff.warnings)}." if diff.warnings else ""
+                absent_note = (
+                    f" Existing paysheets not present in this file were kept: {len(diff.absent)}."
+                    if diff.absent else ""
+                )
+                self.message_user(
+                    request,
+                    (
+                        f"Salary upload complete. Created: {batch.records_created}. "
+                        f"Updated: {batch.records_updated}.{warning_note}{absent_note}"
+                    ),
+                    messages.SUCCESS if not diff.warnings else messages.WARNING,
+                )
+                return redirect("admin:payroll_uploadbatch_change", batch.pk)
+        else:
+            form = SalaryUploadForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "title": "Upload salary sheet",
+            "form": form,
+        }
+        return render(request, "admin/payroll/uploadbatch/upload.html", context)
 
     @admin.action(description="Send payslip notification emails for selected batches")
     def send_payslip_emails(self, request, queryset):

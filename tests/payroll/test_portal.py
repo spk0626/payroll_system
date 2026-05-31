@@ -9,6 +9,7 @@ import uuid
 from decimal import Decimal
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.contrib.auth.models import User
 from employees.models import Branch, Employee, EmployeeCategory
 from payroll.models import PaySheet
 
@@ -68,6 +69,16 @@ class TestDashboard(TestCase):
         _make_paysheet(other, month=3, year=2025)
         resp = self.client.get(reverse("payroll:dashboard"))
         self.assertEqual(len(resp.context["entries"]), 0)
+
+    def test_admin_session_redirects_to_employee_login(self):
+        self.client.logout()
+        admin_user = User.objects.create_superuser(
+            "admin@test.com", "admin@test.com", "Admin!Pass123"
+        )
+        self.client.login(username=admin_user.username, password="Admin!Pass123")
+        resp = self.client.get(reverse("payroll:dashboard"), follow=False)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(reverse("accounts:login"), resp["Location"])
 
 
 @override_settings(RATELIMIT_ENABLE=False)

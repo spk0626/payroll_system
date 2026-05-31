@@ -9,15 +9,20 @@ from .base import *  # noqa: F401, F403
 DEBUG = True
 
 # Use SQLite in development — no PostgreSQL setup required to start working
+SQLITE_DATABASE_PATH = config("SQLITE_DATABASE_PATH", default=str(BASE_DIR / "db.sqlite3"))  # noqa: F405
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",  # noqa: F405
+        "NAME": SQLITE_DATABASE_PATH,
     }
 }
 
-# Print emails to terminal in development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Print emails to terminal by default. Set EMAIL_BACKEND in .env to test SMTP.
+EMAIL_BACKEND = config(  # noqa: F405
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
 
 # Relax security headers that break local HTTP
 SECURE_SSL_REDIRECT = False

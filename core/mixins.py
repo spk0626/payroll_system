@@ -2,8 +2,10 @@
 Reusable mixins for views and admin classes.
 """
 
+from django.contrib import auth, messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 
 
 class EmployeeRequiredMixin(LoginRequiredMixin):
@@ -19,7 +21,9 @@ class EmployeeRequiredMixin(LoginRequiredMixin):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         if not hasattr(request.user, "employee"):
-            raise PermissionDenied("This area is for employees only.")
+            auth.logout(request)
+            messages.info(request, "Please sign in with an employee account to view the payslip portal.")
+            return redirect("accounts:login")
         return super().dispatch(request, *args, **kwargs)
 
 

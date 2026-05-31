@@ -4,10 +4,13 @@ D6 tests: admin panel actions and management command.
 
 import os
 import tempfile
+from io import BytesIO
 from decimal import Decimal
 from unittest.mock import patch
 
+import openpyxl
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.conf import settings
@@ -93,6 +96,42 @@ class TestUploadBatchAdminActions(TestCase):
             f"/{settings.ADMIN_URL}payroll/uploadbatch/"
         )
         self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Upload salary sheet")
+
+    def test_upload_salary_sheet_admin_view_processes_file(self):
+        CategoryParserConfig.objects.create(
+            category=self.emp.category,
+            emp_id_row_label="Employee",
+            fixed_info_row_labels=[],
+        )
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["Employee", self.emp.employee_number])
+        ws.append(["Basic", 50000])
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        upload = SimpleUploadedFile(
+            "salary.xlsx",
+            buffer.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        resp = self.client.post(
+            f"/{settings.ADMIN_URL}payroll/uploadbatch/upload-salary-sheet/",
+            {
+                "category": self.emp.category.pk,
+                "month": 2,
+                "year": 2025,
+                "salary_file": upload,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(
+            PaySheet.objects.filter(employee=self.emp, month=2, year=2025).exists()
+        )
 
     def test_send_email_action(self):
         with patch("payroll.services.email_service._send_one"):
