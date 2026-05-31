@@ -1,233 +1,125 @@
 # Syntax Asia Payroll System
 
-A Django payroll management app for Syntax Asia. Staff admins manage employees,
-upload monthly Excel salary sheets, send payslip email notifications, and review
-audit history. Employees log in to view and print only their own payslips.
+A web-based payroll system for Syntax Asia. Administrators manage employees,
+upload monthly Excel salary sheets, send payslip notifications, and review upload
+history. Employees log in to view and print their own payslips.
 
-## Current Status
+## Main Features
 
-The core app features are implemented through the security hardening work:
+- Employee, branch, and employee category management
+- Automatic employee login account creation
+- Password reset and forced first-login password change
+- Category-based Excel salary upload
+- Dynamic salary components from Excel files
+- Employee payslip dashboard, detail view, and A4 print view
+- Payslip email notifications with retry for failed sends
+- Upload history, email history, and admin audit views
+- Security headers, rate-limited login, and custom error pages
 
-- Employee and branch/category management
-- Employee account creation, password reset, forced password change, and MFA support
-- Employee portal with UUID payslip URLs and ownership checks
-- Excel upload parser and upload audit records
-- Payslip email notifications with failed-send retry
-- Admin audit views and upload-file retention cleanup command
-- Security headers, custom error pages, and rate-limited authentication
+## User Manual
 
-Deployment files and integration-test placeholders are still being prepared in
-the current working tree and are not part of the committed app yet.
+### Admin Login
 
-## Stack
+1. Open the admin portal:
+   ```text
+   /management-portal/
+   ```
+2. Sign in with a staff or superadmin account.
+3. Superadmins can manage other admin users from Django's Users section.
 
-- Python 3.12
-- Django 5.1.4
-- SQLite for local development
-- PostgreSQL for production
-- pandas and openpyxl for Excel parsing
-- django-otp for admin MFA
-- django-ratelimit for login protection
-- python-decouple and dj-database-url for configuration
-- Custom CSS and Django templates
+### Branches And Employee Categories
 
-## Quick Start
+Create branches and employee categories before adding employees.
 
-```bash
-git clone <repo-url>
-cd payroll_system
+Employee categories are groups such as:
 
-python -m venv .venv
-.venv\Scripts\activate
+- Permanent staff
+- Contract workers
+- Management
+- Any other payroll grouping used by the company
 
-pip install -r requirements/development.txt
-copy .env.example .env
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
+Each employee belongs to one category at a time. Categories matter because
+different categories may use different Excel salary formats.
 
-On macOS/Linux, activate the virtual environment with:
+### Category Parser Configs
 
-```bash
-source .venv/bin/activate
-```
+`CategoryParserConfig` tells the system how to read an Excel sheet for one
+employee category.
 
-Generate a local `SECRET_KEY` if needed:
+In client-facing language:
 
-```bash
-python -c "import secrets; print(secrets.token_urlsafe(64))"
-```
+> A parser config is the salary-sheet reading rule for a category. It tells the
+> system which row contains employee numbers and which rows are only information
+> rows, so the remaining rows can be treated as salary components.
 
-Default local URLs:
+Example:
 
-| URL | Purpose |
-| --- | --- |
-| `http://localhost:8000/` | Employee login |
-| `http://localhost:8000/portal/` | Employee payslip dashboard |
-| `http://localhost:8000/management-portal/` | Django admin portal |
+| Field | Example | Meaning |
+| --- | --- | --- |
+| Category | Permanent Staff | The employee group this rule applies to |
+| Employee ID row label | Employee | The label in column A for the row containing employee numbers |
+| Fixed info row labels | `["Employee Name", "Designation"]` | Rows to ignore because they are not salary amounts |
 
-The admin URL comes from `ADMIN_URL` and should be changed for production.
+Keep `CategoryParserConfig`. It is useful because it lets Syntax Asia change
+Excel formats by category without changing code.
 
-## Project Layout
+### Adding Employees
+
+1. Go to Employees.
+2. Add employee number, full name, email, branch, category, bank details, and
+   date of joining.
+3. Save.
+4. The system automatically creates a login user using the employee email.
+5. The employee must change their temporary password on first login.
+
+If an employee cannot log in, use the admin action to reset their password.
+
+### Uploading Salary Sheets
+
+1. Go to Payroll -> Upload batches.
+2. Click `Upload salary sheet`.
+3. Select category, month, year, and the `.xlsx` file.
+4. Submit the upload.
+5. The system parses the file, creates or updates paysheets, and records warnings.
+
+Unknown employee numbers are skipped and shown as warnings. Existing paysheets
+for the same month are updated instead of duplicated.
+
+### Employee Portal
+
+Employees log in from:
 
 ```text
-payroll_system/
-├── accounts/              # Login, password reset, MFA, session middleware
-├── config/                # Django settings, root URLs, error handlers
-├── core/                  # Shared constants, validators, mixins, security headers
-├── employees/             # Branches, categories, employees, account signals
-├── payroll/               # Paysheets, uploads, parser, email service, portal views
-│   ├── management/commands/
-│   │   └── purge_old_uploads.py
-│   └── services/
-│       ├── email_service.py
-│       ├── excel_parser.py
-│       └── upload_service.py
-├── requirements/          # Base, development, and production dependencies
-├── static/                # Main and print CSS, JavaScript
-├── templates/             # Page, email, and error templates
-└── tests/                 # Pytest suite grouped by app/feature
+/
 ```
 
-## Environment
+After login, they can:
 
-Configuration is read from `.env` via `python-decouple`.
+- View available payslip months
+- Open a salary breakdown
+- Print or save the payslip as PDF
 
-Important values:
-
-| Variable | Purpose |
-| --- | --- |
-| `SECRET_KEY` | Required Django secret |
-| `DJANGO_SETTINGS_MODULE` | `config.settings.development` or `config.settings.production` |
-| `ALLOWED_HOSTS` | Comma-separated allowed hostnames |
-| `DATABASE_URL` | Production PostgreSQL connection URL |
-| `ADMIN_URL` | Custom admin path, default `management-portal/` |
-| `SITE_URL` | Base URL used in emails |
-| `COMPANY_NAME` | Displayed in templates and emails; not hardcoded |
-| `COMPANY_ADDRESS` | Optional payslip/company address |
-| `CURRENCY_SYMBOL` | Currency label, default `LKR` |
-| `EMAIL_*` | SMTP settings for production email delivery |
-| `MEMCACHED_LOCATION` | Production cache for rate limiting |
-
-In development, the email backend prints email content to the console. That
-means temporary passwords and reset links will not arrive in a real inbox until
-SMTP settings are configured in production.
-
-## Main Workflows
-
-### Employee Setup
-
-1. Admin creates branches and employee categories.
-2. Admin creates an employee.
-3. The app creates a linked Django user automatically.
-4. The employee receives or is shown a temporary password, then must change it.
-
-### Excel Upload
-
-1. Configure `CategoryParserConfig` for each employee category.
-2. Upload the monthly `.xlsx` file for that category.
-3. The parser reads employee numbers and salary component rows.
-4. The upload service builds a create/update/absent diff.
-5. Confirmed changes write `PaySheet` records and an `UploadBatch` audit record.
-
-### Payslip Access
-
-Employees can only access paysheets where `paysheet.employee.user == request.user`.
-Payslip URLs use UUIDs, but the ownership check is still enforced on every detail
-and print view.
+Employees can only view their own payslips.
 
 ### Email Notifications
 
-Admins can send payslip notifications from upload batches. Every send attempt is
-recorded in `EmailLog`, and failed sends can be retried without resending to
-successful recipients.
+After salary upload, admins can send payslip emails from Upload batches.
 
-## Tests
+The system records each send attempt in Email logs:
 
-Run the suite:
+- Sent
+- Failed
+- Pending
 
-```bash
-python -m pytest -q
-```
-
-Current status on the security branch:
-
-```text
-91 passed
-```
-
-Useful focused commands:
-
-```bash
-python -m pytest tests/accounts/test_auth.py -q
-python -m pytest tests/payroll/test_portal.py -q
-python -m pytest tests/payroll/test_parser.py -q
-python -m pytest tests/payroll/test_email_service.py -q
-python -m pytest tests/payroll/test_admin.py -q
-python -m pytest tests/test_security.py -q
-```
-
-Also run Django checks before pushing:
-
-```bash
-python manage.py check
-python manage.py check --deploy
-```
-
-For `check --deploy`, use production-like environment variables and do not reuse
-development secrets.
+Failed emails can be retried without resending successful emails.
 
 ## Security Notes
 
-- Admin is mounted at `ADMIN_URL`, not Django's default `/admin/`.
+- Admin URL is configurable and should not stay as the default in production.
+- Employee payslip URLs use UUIDs and ownership checks.
+- Uploaded salary files are stored outside public static/media paths.
 - Login is rate-limited.
-- Admin MFA uses TOTP.
-- Sessions use idle timeout and forced password-change flow.
-- Payslip URLs use UUIDs and still enforce ownership checks.
-- Uploaded Excel files are stored outside the web root in `salary_uploads/`.
-- Parser blocks formula-injection prefixes except negative numbers used for deductions.
-- Custom security middleware sets CSP, permissions policy, frame, referrer, and content-type headers.
-- Production settings enable HTTPS redirect, HSTS, secure cookies, and PostgreSQL.
-
-Salary and bank details are restricted personal data. Avoid logging request
-bodies, Excel contents, payslip breakdowns, or generated passwords.
-
-## Admin And Audit Tools
-
-- `UploadBatch` records every upload attempt and processing result.
-- `EmailLog` records payslip email send status per employee.
-- Admin actions can send payslip notifications and retry failed sends.
-- `python manage.py purge_old_uploads` deletes old uploaded Excel files while
-  preserving the database audit record.
-
-Example dry run:
-
-```bash
-python manage.py purge_old_uploads --months 12 --dry-run
-```
-
-## Production Checklist
-
-- Set `DEBUG=False`.
-- Use a fresh, strong `SECRET_KEY`.
-- Set `ALLOWED_HOSTS`.
-- Configure `DATABASE_URL` for PostgreSQL.
-- Configure SMTP settings for real email delivery.
-- Change `ADMIN_URL` from the development default.
-- Ensure `salary_uploads/` is not served by Nginx or any static/media route.
-- Run `python manage.py check --deploy`.
-- Run the full test suite.
-- Enroll MFA for admin accounts.
-- Configure backups before go-live.
-
-## Engineering Practices
-
-- Keep changes small and reviewable.
-- Prefer service modules for business logic that should be tested without HTTP.
-- Keep salary data out of URLs, logs, and error messages.
-- Add regression tests for every security or payroll-money behavior change.
-- Run checks before each push and keep branch names feature-focused.
+- Salary and bank details should not be logged or shared through screenshots.
 
 ## License
 
