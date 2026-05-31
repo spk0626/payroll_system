@@ -156,10 +156,14 @@ Project settings:
 
 ```text
 Framework Preset: Other
+Install Command: python -m pip install --break-system-packages -r requirements.txt
 Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
 Output Directory: leave blank
 Run Command: leave blank
 ```
+
+The explicit install command avoids Vercel's externally-managed Python
+environment blocking the dependency install step.
 
 Do not set Python `runtime` or manual `functions` entries in `vercel.json`.
 Vercel detects Django from `manage.py`, then uses the WSGI entrypoint and static
