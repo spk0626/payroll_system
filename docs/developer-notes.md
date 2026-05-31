@@ -158,9 +158,13 @@ Project settings:
 Framework Preset: Other
 Install Command: python -m pip install --break-system-packages -r requirements.txt
 Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
-Output Directory: staticfiles
+Output Directory: leave blank
 Run Command: leave blank
 ```
+
+Do not set `outputDirectory` to `staticfiles`. That deploys only collected
+static assets and bypasses the Django application, which causes Vercel's
+platform-level `404: NOT_FOUND` page at the site root.
 
 The explicit install command avoids Vercel's externally-managed Python
 environment blocking the dependency install step.
