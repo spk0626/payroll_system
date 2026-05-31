@@ -16,8 +16,11 @@ DATABASES = {
     }
 }
 
-# Print emails to terminal in development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Print emails to terminal by default. Set EMAIL_BACKEND in .env to test SMTP.
+EMAIL_BACKEND = config(  # noqa: F405
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
 
 # Relax security headers that break local HTTP
 SECURE_SSL_REDIRECT = False
