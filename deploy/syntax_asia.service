@@ -1,0 +1,30 @@
+[Unit]
+Description=Syntax Asia Payroll Gunicorn service
+After=network.target
+
+[Service]
+User=syntax_app
+Group=www-data
+WorkingDirectory=/var/www/syntax_asia
+EnvironmentFile=/var/www/syntax_asia/.env
+RuntimeDirectory=syntax_asia
+RuntimeDirectoryMode=0755
+ExecStart=/var/www/syntax_asia/.venv/bin/gunicorn \
+    --workers 4 \
+    --bind unix:/run/syntax_asia/gunicorn.sock \
+    --access-logfile - \
+    --error-logfile - \
+    config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGQUIT
+TimeoutStopSec=30
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/www/syntax_asia /run/syntax_asia /var/log/syntax_asia
+
+[Install]
+WantedBy=multi-user.target
