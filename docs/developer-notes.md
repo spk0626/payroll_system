@@ -147,6 +147,62 @@ data across deploys:
 
 Without a persistent disk, the SQLite database will be lost on redeploys.
 
+## Vercel Deployment Notes
+
+Vercel is possible for a private demo, but it is serverless. Use PostgreSQL
+there; do not use SQLite for payroll data on Vercel.
+
+Project settings:
+
+```text
+Framework Preset: Other
+Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
+Output Directory: leave blank
+Run Command: leave blank
+```
+
+Required Vercel environment variables:
+
+```env
+DJANGO_SETTINGS_MODULE=config.settings.vercel
+SECRET_KEY=<generated-secret>
+ALLOWED_HOSTS=.vercel.app,<your-custom-domain>
+CSRF_TRUSTED_ORIGINS=https://*.vercel.app,https://<your-custom-domain>
+DATABASE_URL=<postgres-connection-url>
+ADMIN_URL=management-portal/
+COMPANY_NAME=Syntax Asia
+CURRENCY_SYMBOL=LKR
+SITE_URL=https://<your-vercel-domain>
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=<smtp-user>
+EMAIL_HOST_PASSWORD=<smtp-app-password>
+EMAIL_USE_TLS=True
+DEFAULT_FROM_EMAIL=Syntax Asia Payroll <smtp-user>
+```
+
+Database setup:
+
+1. In Vercel, open the project.
+2. Go to Storage.
+3. Add a PostgreSQL database, or connect an external PostgreSQL provider.
+4. Confirm `DATABASE_URL` is available to the project.
+5. Run migrations from a machine with the same environment values:
+   ```bash
+   python manage.py migrate --settings=config.settings.vercel
+   ```
+6. Create the first admin user:
+   ```bash
+   python manage.py createsuperuser --settings=config.settings.vercel
+   ```
+
+The local `.env` file is not uploaded to Vercel. Add each value in Vercel's
+Environment Variables screen. Keep `.env` only for local development.
+
+Important limitation: uploaded salary Excel files are not durable on Vercel's
+function filesystem. For a production Vercel deployment, move uploaded files to
+object storage before using it with real payroll data.
+
 ## Future MFA Option
 
 The product requirements do not ask for authenticator-app login. Keep it out of
