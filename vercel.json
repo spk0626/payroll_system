@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "python manage.py collectstatic --noinput --settings=config.settings.vercel",
+  "functions": {
+    "config/wsgi.py": {
+      "runtime": "python3.12",
+      "excludeFiles": "{.venv/**,tests/**,.pytest_cache/**,htmlcov/**,salary_uploads/**,media/**,logs/**,db.sqlite3,*.log}"
+    }
+  }
+}
