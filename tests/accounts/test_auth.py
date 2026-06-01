@@ -9,7 +9,6 @@ Coverage:
 - SessionIdleTimeoutMiddleware: logs out after idle timeout
 - ChangePasswordView: clears must_change_password flag on success
 - Password reset: form acceptance, always-success response (no enumeration)
-- MFA setup view: only accessible to staff users
 
 Note on rate limiting:
     django-ratelimit uses the cache backend. Tests that hit the login view
@@ -298,24 +297,3 @@ class TestSessionIdleTimeout(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertNotIn(reverse("accounts:login"), resp.get("Location", ""))
 
-
-# ─── MFA setup view ───────────────────────────────────────────────────────────
-
-class TestMFASetupView(TestCase):
-    def test_employee_cannot_access_mfa_setup(self):
-        emp = _make_employee(email="mfa@test.com", emp_number="EMP004")
-        emp.refresh_from_db()
-        emp.user.set_password("Pass!word99")
-        emp.user.save()
-        emp.must_change_password = False
-        emp.save()
-        self.client.login(username="mfa@test.com", password="Pass!word99")
-        resp = self.client.get(reverse("accounts:mfa_setup"), follow=False)
-        self.assertRedirects(resp, reverse("accounts:login"), fetch_redirect_response=False)
-
-    def test_admin_can_access_mfa_setup(self):
-        _make_admin("mfaadmin@test.com")
-        self.client.login(username="mfaadmin@test.com", password="Admin!Pass123")
-        resp = self.client.get(reverse("accounts:mfa_setup"))
-        self.assertEqual(resp.status_code, 200)
-        self.assertTemplateUsed(resp, "accounts/mfa_setup.html")

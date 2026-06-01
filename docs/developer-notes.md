@@ -5,6 +5,8 @@ features that are intentionally not described in the client-facing README.
 
 ## Local Setup
 
+For the shortest current setup path, use `docs/running-guide.md`.
+
 ```bash
 git clone <repo-url>
 cd payroll_system
