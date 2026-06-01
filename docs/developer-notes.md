@@ -196,6 +196,10 @@ EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=Syntax Asia Payroll <smtp-user>
 ```
 
+If a Vercel runtime page shows `Using settings module config.settings.development`,
+change the Vercel dashboard variable `DJANGO_SETTINGS_MODULE` to
+`config.settings.vercel` for Preview and Production, then redeploy.
+
 The Vercel settings always include `.vercel.app` and Vercel's generated preview
 hostnames in `ALLOWED_HOSTS`, even when the dashboard variable contains only a
 custom domain.
