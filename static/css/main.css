@@ -180,13 +180,6 @@ body {
 }
 .form-input--error { border-color: var(--c-danger); }
 .form-input--error:focus { box-shadow: 0 0 0 3px rgba(198,40,40,.15); }
-.form-input--otp {
-  font-size: 24px;
-  letter-spacing: .5em;
-  text-align: center;
-  font-family: monospace;
-}
-
 .form-hint { font-size: 12px; color: var(--text-muted); }
 .form-hint--error { color: var(--c-danger); }
 
@@ -301,31 +294,3 @@ body {
 .password-rules ul { padding-left: 1.25rem; }
 .password-rules li { margin-bottom: .25rem; }
 
-/* ── MFA ──────────────────────────────────────────────────────────────────── */
-
-.mfa-steps { display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 1.5rem; }
-.mfa-step { display: flex; gap: 1rem; align-items: flex-start; }
-.mfa-step__num {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--c-primary);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-}
-.mfa-step p { font-size: 14px; color: var(--text-secondary); padding-top: 4px; }
-.qr-code-wrap {
-  display: flex;
-  justify-content: center;
-  margin-top: .75rem;
-  padding: 1rem;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.qr-code-wrap svg { max-width: 200px; height: auto; }

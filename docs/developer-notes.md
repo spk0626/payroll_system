@@ -5,6 +5,8 @@ features that are intentionally not described in the client-facing README.
 
 ## Local Setup
 
+For the shortest current setup path, use `docs/running-guide.md`.
+
 ```bash
 git clone <repo-url>
 cd payroll_system
@@ -158,16 +160,23 @@ Project settings:
 Framework Preset: Other
 Install Command: python -m pip install --break-system-packages -r requirements.txt
 Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
-Output Directory: staticfiles
+Output Directory: leave blank
 Run Command: leave blank
 ```
+
+Do not set `outputDirectory` to `staticfiles`. That deploys only collected
+static assets and bypasses the Django application, which causes Vercel's
+platform-level `404: NOT_FOUND` page at the site root.
 
 The explicit install command avoids Vercel's externally-managed Python
 environment blocking the dependency install step.
 
-Do not set Python `runtime` or manual `functions` entries in `vercel.json`.
-Vercel detects Django from `manage.py`, then uses the WSGI entrypoint and static
-configuration from the Django project.
+Keep the root `requirements.txt` flat. Vercel's Python build parser can reject
+nested `-r` include files even though pip supports them.
+
+Use explicit `builds` and `routes` in `vercel.json` so every non-static request
+is sent to `config/wsgi.py`. Do not set `outputDirectory`; that makes Vercel
+serve only collected static files and bypass Django.
 
 Required Vercel environment variables:
 
@@ -188,6 +197,14 @@ EMAIL_HOST_PASSWORD=<smtp-app-password>
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=Syntax Asia Payroll <smtp-user>
 ```
+
+If a Vercel runtime page shows `Using settings module config.settings.development`,
+change the Vercel dashboard variable `DJANGO_SETTINGS_MODULE` to
+`config.settings.vercel` for Preview and Production, then redeploy.
+
+The Vercel settings always include `.vercel.app` and Vercel's generated preview
+hostnames in `ALLOWED_HOSTS`, even when the dashboard variable contains only a
+custom domain.
 
 Database setup:
 

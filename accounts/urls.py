@@ -23,7 +23,4 @@ urlpatterns = [
         views.PasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
     ),
-
-    # ── MFA setup (admin accounts only) ─────────────────────────────────────
-    path("mfa/setup/", views.MFASetupView.as_view(), name="mfa_setup"),
 ]

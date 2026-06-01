@@ -121,6 +121,12 @@ Failed emails can be retried without resending successful emails.
 - Login is rate-limited.
 - Salary and bank details should not be logged or shared through screenshots.
 
+## Developer Docs
+
+- `docs/running-guide.md` - local run commands and Vercel setup checklist.
+- `docs/agent-handoff.md` - short project map for AI-assisted work.
+- `docs/release-checklist.md` - branch and release checks before pushing.
+
 ## License
 
 Private - Syntax Asia internal use only.
