@@ -1,6 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "django",
+  "version": 2,
   "installCommand": "python -m pip install --break-system-packages -r requirements.txt",
-  "buildCommand": "python manage.py collectstatic --noinput --settings=config.settings.vercel"
+  "buildCommand": "python manage.py collectstatic --noinput --settings=config.settings.vercel",
+  "builds": [
+    {
+      "src": "config/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "config/wsgi.py"
+    }
+  ]
 }
