@@ -169,6 +169,9 @@ platform-level `404: NOT_FOUND` page at the site root.
 The explicit install command avoids Vercel's externally-managed Python
 environment blocking the dependency install step.
 
+Keep the root `requirements.txt` flat. Vercel's Python build parser can reject
+nested `-r` include files even though pip supports them.
+
 Do not set Python `runtime` or manual `functions` entries in `vercel.json`.
 Vercel detects Django from `manage.py`, then uses the WSGI entrypoint and static
 configuration from the Django project.
