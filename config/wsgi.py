@@ -11,7 +11,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
+default_settings = "config.settings.vercel" if os.environ.get("VERCEL") else "config.settings.development"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", default_settings)
 
 application = get_wsgi_application()
 app = application

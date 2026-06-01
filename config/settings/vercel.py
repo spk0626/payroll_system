@@ -3,21 +3,33 @@ Vercel settings.
 Uses Vercel's Python runtime with an external PostgreSQL database.
 """
 
-from decouple import Csv, config
+from decouple import config
 
 from .production import *  # noqa: F401, F403
 
-ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS",
-    cast=Csv(),
-    default=".vercel.app,localhost,127.0.0.1",
-)
+def _csv_setting(name: str, default: str = "") -> list[str]:
+    return [item.strip() for item in config(name, default=default).split(",") if item.strip()]
 
-CSRF_TRUSTED_ORIGINS = config(
-    "CSRF_TRUSTED_ORIGINS",
-    cast=Csv(),
-    default="https://*.vercel.app",
-)
+
+ALLOWED_HOSTS = _csv_setting("ALLOWED_HOSTS")
+for host in [
+    ".vercel.app",
+    "localhost",
+    "127.0.0.1",
+    config("VERCEL_URL", default=""),
+    config("VERCEL_BRANCH_URL", default=""),
+]:
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+
+CSRF_TRUSTED_ORIGINS = _csv_setting("CSRF_TRUSTED_ORIGINS")
+for origin in [
+    "https://*.vercel.app",
+    f"https://{config('VERCEL_URL', default='')}",
+    f"https://{config('VERCEL_BRANCH_URL', default='')}",
+]:
+    if origin != "https://" and origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 

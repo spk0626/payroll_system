@@ -196,6 +196,10 @@ EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=Syntax Asia Payroll <smtp-user>
 ```
 
+The Vercel settings always include `.vercel.app` and Vercel's generated preview
+hostnames in `ALLOWED_HOSTS`, even when the dashboard variable contains only a
+custom domain.
+
 Database setup:
 
 1. In Vercel, open the project.
