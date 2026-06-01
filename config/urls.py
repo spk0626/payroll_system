@@ -9,12 +9,14 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 admin.site.site_header = f"{settings.COMPANY_NAME} — Payroll Administration"
 admin.site.site_title = f"{settings.COMPANY_NAME} Payroll"
 admin.site.index_title = "Administration"
 
 urlpatterns = [
+    path("", RedirectView.as_view(pattern_name="accounts:login", permanent=False), name="home"),
     path(settings.ADMIN_URL, admin.site.urls),
     path("", include("accounts.urls", namespace="accounts")),
     path("portal/", include("payroll.urls", namespace="payroll")),
