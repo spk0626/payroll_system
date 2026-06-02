@@ -426,7 +426,14 @@ class PaySheetAdmin(admin.ModelAdmin):
         "employee__employee_number",
         "employee__email",
     ]
-    readonly_fields = ["id", "employee", "category_snapshot", "upload_batch", "created_at"]
+    readonly_fields = [
+        "id",
+        "employee",
+        "category_snapshot",
+        "upload_batch",
+        "created_at",
+        "updated_at",
+    ]
     ordering = ["-year", "-month", "employee__full_name"]
     list_select_related = ["employee", "category_snapshot"]
     list_per_page = 50

@@ -18,7 +18,7 @@ pip install -r requirements/development.txt
 copy .env.example .env
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py runserver
+python manage.py runserver 8004
 ```
 
 On macOS/Linux:
@@ -48,7 +48,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 ADMIN_URL=management-portal/
 COMPANY_NAME=Syntax Asia
 CURRENCY_SYMBOL=LKR
-SITE_URL=http://localhost:8000
+SITE_URL=http://localhost:8004
 ```
 
 For Gmail SMTP testing:

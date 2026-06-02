@@ -20,7 +20,7 @@ SECRET_KEY=replace-with-a-generated-secret
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 ADMIN_URL=management-portal/
-SITE_URL=http://localhost:8000
+SITE_URL=http://localhost:8004
 ```
 
 Generate a local secret key:
@@ -34,14 +34,14 @@ Generate a local secret key:
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py createsuperuser
-.\.venv\Scripts\python.exe manage.py runserver
+.\.venv\Scripts\python.exe manage.py runserver 8004
 ```
 
 Open:
 
 ```text
-Employee portal: http://127.0.0.1:8000/
-Admin portal:    http://127.0.0.1:8000/management-portal/
+Employee portal: http://127.0.0.1:8004/
+Admin portal:    http://127.0.0.1:8004/management-portal/
 ```
 
 ## Checks
@@ -88,4 +88,3 @@ SITE_URL=https://<vercel-domain>
 ```
 
 Do not use SQLite on Vercel for real payroll data. Use PostgreSQL.
-

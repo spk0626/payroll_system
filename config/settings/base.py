@@ -114,7 +114,7 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Syntax Asia Payroll <
 COMPANY_NAME = config("COMPANY_NAME", default="Syntax Asia")
 COMPANY_ADDRESS = config("COMPANY_ADDRESS", default="")
 CURRENCY_SYMBOL = config("CURRENCY_SYMBOL", default="LKR")
-SITE_URL = config("SITE_URL", default="http://localhost:8000")
+SITE_URL = config("SITE_URL", default="http://localhost:8004")
 
 SESSION_IDLE_TIMEOUT = config("SESSION_IDLE_TIMEOUT", cast=int, default=1800)
 SESSION_REMEMBER_ME_AGE = 60 * 60 * 24 * 30  # 30 days
