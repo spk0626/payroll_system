@@ -41,6 +41,15 @@ class SalaryUploadForm(forms.Form):
         validate_excel_file(salary_file)
         return salary_file
 
+    def clean_category(self):
+        category = self.cleaned_data["category"]
+        if not hasattr(category, "parser_config"):
+            raise forms.ValidationError(
+                "This category does not have an Excel parser configuration. "
+                "Add one from the employee category page before uploading."
+            )
+        return category
+
 
 @admin.register(CategoryParserConfig)
 class CategoryParserConfigAdmin(admin.ModelAdmin):

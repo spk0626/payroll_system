@@ -133,6 +133,34 @@ class TestUploadBatchAdminActions(TestCase):
             PaySheet.objects.filter(employee=self.emp, month=2, year=2025).exists()
         )
 
+    def test_upload_requires_parser_config_before_saving_batch(self):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["Employee", self.emp.employee_number])
+        ws.append(["Basic", 50000])
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        upload = SimpleUploadedFile(
+            "salary.xlsx",
+            buffer.read(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        resp = self.client.post(
+            f"/{settings.ADMIN_URL}payroll/uploadbatch/upload-salary-sheet/",
+            {
+                "category": self.emp.category.pk,
+                "month": 2,
+                "year": 2025,
+                "salary_file": upload,
+            },
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "does not have an Excel parser configuration")
+        self.assertEqual(UploadBatch.objects.count(), 1)
+
     def test_send_email_action(self):
         with patch("payroll.services.email_service._send_one"):
             resp = self.client.post(

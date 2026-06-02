@@ -5,6 +5,8 @@ Views:
     dashboard         - Lists all payslip months available to the logged-in employee
     payslip_detail    - Shows breakdown for one payslip (UUID URL, ownership enforced)
     payslip_print     - Print-optimised view of the same payslip (A4, one page)
+    payslip_print_all - Print-optimised view for all of the employee's payslips
+    payslip_download_all - Server-generated PDF for all employee payslips
 
 Security:
     Every view that touches a PaySheet calls _get_owned_paysheet() which:
@@ -18,6 +20,7 @@ import logging
 from decimal import Decimal, InvalidOperation
 
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
 
@@ -151,3 +154,52 @@ class PayslipPrintView(EmployeeRequiredMixin, View):
             "employee": paysheet.employee,
             "many_components": len(breakdown_rows) > 15,
         })
+
+
+class PayslipPrintAllView(EmployeeRequiredMixin, View):
+    """Print all payslips belonging to the logged-in employee."""
+
+    template_name = "payroll/payslip_print_all.html"
+
+    def get(self, request):
+        paysheets = (
+            PaySheet.objects
+            .filter(employee=request.user.employee)
+            .select_related("employee", "category_snapshot", "employee__branch")
+            .order_by("-year", "-month")
+        )
+        months_map = dict(MONTHS)
+        entries = [
+            {
+                "paysheet": paysheet,
+                "breakdown_rows": _breakdown_rows(paysheet),
+                "month_name": months_map.get(paysheet.month, str(paysheet.month)),
+                "many_components": len(paysheet.breakdown) > 15,
+            }
+            for paysheet in paysheets
+        ]
+
+        return render(request, self.template_name, {
+            "entries": entries,
+            "employee": request.user.employee,
+        })
+
+
+class PayslipDownloadAllView(EmployeeRequiredMixin, View):
+    """Download all payslips belonging to the logged-in employee as one PDF."""
+
+    def get(self, request):
+        paysheets = list(
+            PaySheet.objects
+            .filter(employee=request.user.employee)
+            .select_related("employee", "category_snapshot", "employee__branch")
+            .order_by("-year", "-month")
+        )
+
+        from payroll.services.pdf_service import build_payslips_pdf
+
+        pdf_bytes = build_payslips_pdf(paysheets)
+        filename = f"{request.user.employee.employee_number}-payslips.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response

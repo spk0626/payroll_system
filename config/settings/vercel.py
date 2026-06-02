@@ -11,6 +11,17 @@ def _csv_setting(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in config(name, default=default).split(",") if item.strip()]
 
 
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
 ALLOWED_HOSTS = _csv_setting("ALLOWED_HOSTS")
 for host in [
     ".vercel.app",
