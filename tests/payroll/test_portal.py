@@ -149,3 +149,38 @@ class TestPayslipDetail(TestCase):
             reverse("payroll:payslip_print", kwargs={"uuid": ps.id})
         )
         self.assertTrue(resp.context["many_components"])
+
+    def test_print_all_lists_only_own_payslips(self):
+        _make_paysheet(self.emp_a, month=2, year=2025)
+        _make_paysheet(self.emp_b, month=3, year=2025)
+
+        self.client.login(username="empa@test.com", password="Pass!word99")
+        resp = self.client.get(reverse("payroll:payslip_print_all"))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertTemplateUsed(resp, "payroll/payslip_print_all.html")
+        self.assertEqual(len(resp.context["entries"]), 2)
+        self.assertContains(resp, "January 2025")
+        self.assertContains(resp, "February 2025")
+        self.assertNotContains(resp, "March 2025")
+
+    def test_print_all_requires_login(self):
+        resp = self.client.get(reverse("payroll:payslip_print_all"), follow=False)
+        self.assertEqual(resp.status_code, 302)
+
+    def test_download_all_returns_pdf_for_own_payslips(self):
+        _make_paysheet(self.emp_a, month=2, year=2025)
+        _make_paysheet(self.emp_b, month=3, year=2025)
+
+        self.client.login(username="empa@test.com", password="Pass!word99")
+        resp = self.client.get(reverse("payroll:payslip_download_all"))
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Type"], "application/pdf")
+        self.assertIn("EMP020-payslips.pdf", resp["Content-Disposition"])
+        self.assertTrue(resp.content.startswith(b"%PDF"))
+        self.assertGreater(len(resp.content), 1000)
+
+    def test_download_all_requires_login(self):
+        resp = self.client.get(reverse("payroll:payslip_download_all"), follow=False)
+        self.assertEqual(resp.status_code, 302)

@@ -208,6 +208,16 @@ body {
   .print-btn-bar {
     display: none !important;
   }
+
+  .slip-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .slip-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
 }
 
 @media screen {

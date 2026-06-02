@@ -7,7 +7,6 @@ A single email failure never aborts the batch.
 """
 
 import logging
-from datetime import datetime
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives

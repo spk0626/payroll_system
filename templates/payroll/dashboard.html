@@ -13,6 +13,11 @@
 .portal-welcome{margin-bottom:2rem}
 .portal-welcome h1{font-size:22px;font-weight:600;color:#1a3a5c;margin-bottom:.25rem}
 .portal-welcome p{color:#666;font-size:14px}
+.portal-actions{display:flex;justify-content:flex-end;align-items:center;gap:.75rem;margin:-.75rem 0 1rem}
+.portal-actions__button{display:inline-block;padding:.55rem 1rem;background:#1a3a5c;color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600}
+.portal-actions__button:hover{background:#24496f;color:#fff}
+.portal-actions__link{color:#1a3a5c;font-size:13px;text-decoration:none}
+.portal-actions__link:hover{text-decoration:underline}
 .payslip-list{display:flex;flex-direction:column;gap:.75rem}
 .payslip-card{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
 .payslip-card:hover{border-color:#2e75b6;box-shadow:0 2px 8px rgba(46,117,182,.12)}
@@ -29,6 +34,7 @@
 @media (max-width: 640px){
   .portal-header{align-items:flex-start;flex-direction:column;gap:.75rem;padding:1rem}
   .portal-header__user{align-items:flex-start;flex-direction:column;gap:.5rem}
+  .portal-actions{justify-content:flex-start}
   .payslip-card{align-items:flex-start;flex-direction:column}
   .payslip-card__amount{text-align:left}
 }
@@ -54,6 +60,12 @@
   </div>
 
   {% if entries %}
+    <div class="portal-actions">
+      <a href="{% url 'payroll:payslip_download_all' %}" class="portal-actions__button">
+        Download all payslips
+      </a>
+      <a href="{% url 'payroll:payslip_print_all' %}" target="_blank" class="portal-actions__link">Print preview</a>
+    </div>
     <div class="payslip-list" role="list">
       {% for entry in entries %}
         <a href="{% url 'payroll:payslip_detail' entry.uuid %}" class="payslip-card" role="listitem">
