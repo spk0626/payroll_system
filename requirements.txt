@@ -1,6 +1,7 @@
 Django==5.1.4
 whitenoise==6.8.2
 psycopg2-binary==2.9.10
+mysqlclient==2.2.7
 python-decouple==3.8
 dj-database-url==2.3.0
 python-magic==0.4.27

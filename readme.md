@@ -123,7 +123,7 @@ Failed emails can be retried without resending successful emails.
 
 ## Developer Docs
 
-- `docs/running-guide.md` - local run commands and Vercel setup checklist.
+- `docs/running-guide.md` - local run commands and cPanel setup checklist.
 - `docs/agent-handoff.md` - short project map for AI-assisted work.
 - `docs/release-checklist.md` - branch and release checks before pushing.
 

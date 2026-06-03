@@ -47,7 +47,8 @@ numbers, then ask for a focused fix.
 
 Keep feature and deployment work separate:
 
-- Deployment-only changes go on `feature/vercel-deployment`.
+- cPanel deployment-only changes go on `feature/cpanel-deployment`.
+- Vercel deployment-only changes go on `feature/vercel-deployment`.
 - Parked or experimental features must stay on their own feature branch.
 - Do not merge parked feature branches into deployment branches.
 - Before pushing a deployment branch, search for parked feature keywords.
@@ -68,4 +69,3 @@ rg -n "MFA|mfa|OTP|otp|django_otp|qrcode|TOTP|mfa/setup"
 .\.venv\Scripts\python.exe manage.py check
 .\.venv\Scripts\python.exe -m pytest tests\accounts\test_auth.py -q
 ```
-

@@ -149,84 +149,11 @@ data across deploys:
 
 Without a persistent disk, the SQLite database will be lost on redeploys.
 
-## Vercel Deployment Notes
+## cPanel Deployment Notes
 
-Vercel is possible for a private demo, but it is serverless. Use PostgreSQL
-there; do not use SQLite for payroll data on Vercel.
-
-Project settings:
-
-```text
-Framework Preset: Other
-Install Command: python -m pip install --break-system-packages -r requirements.txt
-Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
-Output Directory: leave blank
-Run Command: leave blank
-```
-
-Do not set `outputDirectory` to `staticfiles`. That deploys only collected
-static assets and bypasses the Django application, which causes Vercel's
-platform-level `404: NOT_FOUND` page at the site root.
-
-The explicit install command avoids Vercel's externally-managed Python
-environment blocking the dependency install step.
-
-Keep the root `requirements.txt` flat. Vercel's Python build parser can reject
-nested `-r` include files even though pip supports them.
-
-Use explicit `builds` and `routes` in `vercel.json` so every non-static request
-is sent to `config/wsgi.py`. Do not set `outputDirectory`; that makes Vercel
-serve only collected static files and bypass Django.
-
-Required Vercel environment variables:
-
-```env
-DJANGO_SETTINGS_MODULE=config.settings.vercel
-SECRET_KEY=<generated-secret>
-ALLOWED_HOSTS=.vercel.app,<your-custom-domain>
-CSRF_TRUSTED_ORIGINS=https://*.vercel.app,https://<your-custom-domain>
-DATABASE_URL=<postgres-connection-url>
-ADMIN_URL=management-portal/
-COMPANY_NAME=Syntax Asia
-CURRENCY_SYMBOL=LKR
-SITE_URL=https://<your-vercel-domain>
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=<smtp-user>
-EMAIL_HOST_PASSWORD=<smtp-app-password>
-EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=Syntax Asia Payroll <smtp-user>
-```
-
-If a Vercel runtime page shows `Using settings module config.settings.development`,
-change the Vercel dashboard variable `DJANGO_SETTINGS_MODULE` to
-`config.settings.vercel` for Preview and Production, then redeploy.
-
-The Vercel settings always include `.vercel.app` and Vercel's generated preview
-hostnames in `ALLOWED_HOSTS`, even when the dashboard variable contains only a
-custom domain.
-
-Database setup:
-
-1. In Vercel, open the project.
-2. Go to Storage.
-3. Add a PostgreSQL database, or connect an external PostgreSQL provider.
-4. Confirm `DATABASE_URL` is available to the project.
-5. Run migrations from a machine with the same environment values:
-   ```bash
-   python manage.py migrate --settings=config.settings.vercel
-   ```
-6. Create the first admin user:
-   ```bash
-   python manage.py createsuperuser --settings=config.settings.vercel
-   ```
-
-The local `.env` file is not uploaded to Vercel. Add each value in Vercel's
-Environment Variables screen. Keep `.env` only for local development.
-
-Important limitation: uploaded salary Excel files are not durable on Vercel's
-function filesystem. For a production Vercel deployment, move uploaded files to
-object storage before using it with real payroll data.
+Use `docs/cpanel-deployment.md` for the Namecheap/cPanel deployment flow. This
+branch is for cPanel deployment; keep other hosting providers in their own
+deployment branches.
 
 ## Future MFA Option
 

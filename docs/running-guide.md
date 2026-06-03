@@ -60,31 +60,39 @@ For focused checks:
 .\.venv\Scripts\python.exe -m pytest tests\payroll -q
 ```
 
-## Vercel Notes
+## cPanel Notes
 
-Use `feature/vercel-deployment` for Vercel deployment fixes unless a newer
-deployment branch is created.
+Use `feature/cpanel-deployment` for Namecheap/cPanel deployment fixes.
 
-Required Vercel project settings:
+Required cPanel Python App settings:
 
 ```text
-Framework Preset: Other
-Install Command: python -m pip install --break-system-packages -r requirements.txt
-Build Command: python manage.py collectstatic --noinput --settings=config.settings.vercel
-Output Directory: leave blank
-Run Command: leave blank
+Application root: /pay.syntaxasia.digital
+Application URL: pay.syntaxasia.digital
+Startup file: passenger_wsgi.py
 ```
 
-Required Vercel environment variables:
+Required cPanel environment variables:
 
 ```env
-DJANGO_SETTINGS_MODULE=config.settings.vercel
+DJANGO_SETTINGS_MODULE=config.settings.cpanel
 SECRET_KEY=<generated-secret>
-ALLOWED_HOSTS=.vercel.app,<custom-domain-if-any>
-CSRF_TRUSTED_ORIGINS=https://*.vercel.app,https://<custom-domain-if-any>
-DATABASE_URL=<postgres-url>
+ALLOWED_HOSTS=pay.syntaxasia.digital
+CSRF_TRUSTED_ORIGINS=https://pay.syntaxasia.digital
+DATABASE_URL=mysql://<user>:<password>@localhost:3306/<database>
 ADMIN_URL=management-portal/
-SITE_URL=https://<vercel-domain>
+SITE_URL=https://pay.syntaxasia.digital
 ```
 
-Do not use SQLite on Vercel for real payroll data. Use PostgreSQL.
+Run deployment commands from cPanel Terminal or SSH:
+
+```bash
+pip install -r requirements/production.txt
+python manage.py migrate --settings=config.settings.cpanel
+python manage.py loaddata payroll_postgres_import.json --settings=config.settings.cpanel
+python manage.py seed_default_users --settings=config.settings.cpanel
+python manage.py collectstatic --noinput --settings=config.settings.cpanel
+```
+
+Initial deployment credentials are documented in `docs/cpanel-deployment.md`.
+Rotate them immediately after handover.
