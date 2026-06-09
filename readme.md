@@ -124,6 +124,7 @@ Failed emails can be retried without resending successful emails.
 ## Developer Docs
 
 - `docs/running-guide.md` - local run commands and cPanel setup checklist.
+- `docs/default-credentials.md` - demo credential source and cPanel seed script.
 - `docs/agent-handoff.md` - short project map for AI-assisted work.
 - `docs/release-checklist.md` - branch and release checks before pushing.
 

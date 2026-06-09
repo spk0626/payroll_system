@@ -24,7 +24,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    "django_ratelimit",
+    "ratelimit",
 ]
 
 LOCAL_APPS = [

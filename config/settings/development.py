@@ -45,4 +45,4 @@ CACHES = {
     }
 }
 # Silence the ratelimit shared-cache warning in development only.
-SILENCED_SYSTEM_CHECKS = ["django_ratelimit.E003", "django_ratelimit.W001"]
+SILENCED_SYSTEM_CHECKS = ["ratelimit.E003", "ratelimit.W001"]

@@ -9,20 +9,14 @@ from decouple import config
 from .production import *  # noqa: F401, F403
 
 
-def _csv_setting(name: str, default: str = "") -> list[str]:
+def _csv_setting(name, default=""):
     return [item.strip() for item in config(name, default=default).split(",") if item.strip()]
 
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
 
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 CSRF_TRUSTED_ORIGINS = _csv_setting(
     "CSRF_TRUSTED_ORIGINS",
@@ -37,7 +31,7 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
-SILENCED_SYSTEM_CHECKS = ["django_ratelimit.E003", "django_ratelimit.W001"]
+SILENCED_SYSTEM_CHECKS = ["ratelimit.E003", "ratelimit.W001"]
 
 if DATABASES["default"].get("ENGINE") == "django.db.backends.mysql":  # noqa: F405
     DATABASES["default"].setdefault("OPTIONS", {})  # noqa: F405

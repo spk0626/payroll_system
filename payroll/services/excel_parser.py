@@ -32,7 +32,7 @@ Edge cases handled:
 import logging
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Dict, List, Set, Tuple
 
 import pandas as pd
 
@@ -52,15 +52,15 @@ _INJECTION_PREFIXES = tuple(p for p in FORMULA_INJECTION_PREFIXES if p != "-")
 class EmployeeRecord:
     """Parsed salary data for one employee column."""
     employee_number: str
-    breakdown: dict[str, Decimal]
+    breakdown: Dict[str, Decimal]
     gross_total: Decimal
 
 
 @dataclass
 class ParseResult:
-    records: list[EmployeeRecord] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
-    errors: list[str] = field(default_factory=list)
+    records: List[EmployeeRecord] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
 
     @property
     def has_fatal_errors(self) -> bool:
@@ -72,14 +72,21 @@ class ParseResult:
 def parse_salary_sheet(
     file_path: str,
     emp_id_row_label: str,
-    fixed_info_row_labels: list[str],
-    known_employee_numbers: set[str],
+    fixed_info_row_labels: List[str],
+    known_employee_numbers: Set[str],
 ) -> ParseResult:
     result = ParseResult()
 
     # 1. Read file
     try:
-        df = pd.read_excel(file_path, sheet_name=0, header=None, dtype=str, keep_default_na=False)
+        df = pd.read_excel(
+            file_path,
+            sheet_name=0,
+            header=None,
+            dtype=str,
+            keep_default_na=False,
+            engine="openpyxl",
+        )
     except Exception as exc:
         result.errors.append(f"Could not read file: {exc}")
         return result
@@ -110,7 +117,7 @@ def parse_salary_sheet(
 
     # 4. Identify employee columns (col B onwards)
     id_row = df.iloc[id_row_index]
-    employee_columns: dict[str, int] = {}
+    employee_columns: Dict[str, int] = {}
 
     for col_idx in range(1, len(df.columns)):
         raw_cell = id_row.iloc[col_idx]
@@ -134,7 +141,7 @@ def parse_salary_sheet(
         return result
 
     # 5. Collect salary component rows
-    component_rows: list[tuple[int, str]] = []
+    component_rows: List[Tuple[int, str]] = []
 
     for idx, row in df.iterrows():
         if idx == id_row_index:
@@ -162,7 +169,7 @@ def parse_salary_sheet(
             )
             continue
 
-        breakdown: dict[str, Decimal] = {}
+        breakdown: Dict[str, Decimal] = {}
         for row_idx, label in component_rows:
             raw_value = df.iloc[row_idx, col_idx]
             amount = _parse_amount(raw_value, label, emp_number, result)

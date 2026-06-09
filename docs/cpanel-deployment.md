@@ -15,9 +15,11 @@ Keep provider-specific settings, startup files, and docs on their own branch.
 In cPanel Python App:
 
 ```text
+Python version: 3.6.15
 Application root: /pay.syntaxasia.digital
 Application URL: pay.syntaxasia.digital
 Startup file: passenger_wsgi.py
+Application entry point: application
 ```
 
 Create a MySQL database and user in cPanel, then grant the user all
@@ -68,8 +70,20 @@ data.
 
 ## Initial Credentials
 
-These are deployment/demo credentials only. Rotate them immediately after
-handover and before entering real payroll data.
+This deployment/demo admin credential is defined in
+`payroll/management/commands/seed_default_users.py` and is created or reset only
+after running:
+
+```bash
+python manage.py seed_default_users --settings=config.settings.cpanel
+```
+
+If cPanel Terminal is unavailable, upload and run this file from Python App's
+`Execute python script` field after migrations:
+
+```text
+cpanel_seed_default_users.py
+```
 
 ```text
 Admin portal:
@@ -78,11 +92,11 @@ Username: admin
 Email: admin@example.com
 Password: SyntaxAdmin#2026!
 
-Employee portal:
-URL: https://pay.syntaxasia.digital/login/
-Email/Username: employee@example.com
-Password: SyntaxEmployee#2026!
 ```
 
-The seed command resets only these two accounts. Imported real employee users
-keep their existing password hashes unless reset manually.
+The seed command does not create employee accounts. Create employees manually
+from the admin portal; the application will create employee login accounts from
+those employee records.
+
+Rotate the demo password immediately after handover and before entering real
+payroll data. See `docs/default-credentials.md`.

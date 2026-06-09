@@ -67,9 +67,11 @@ Use `feature/cpanel-deployment` for Namecheap/cPanel deployment fixes.
 Required cPanel Python App settings:
 
 ```text
+Python version: 3.6.15
 Application root: /pay.syntaxasia.digital
 Application URL: pay.syntaxasia.digital
 Startup file: passenger_wsgi.py
+Application entry point: application
 ```
 
 Required cPanel environment variables:
