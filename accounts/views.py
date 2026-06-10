@@ -36,7 +36,7 @@ from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views import View
-from django_ratelimit.decorators import ratelimit
+from ratelimit.decorators import ratelimit
 
 logger = logging.getLogger(__name__)
 

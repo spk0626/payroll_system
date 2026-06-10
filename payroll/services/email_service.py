@@ -7,6 +7,7 @@ A single email failure never aborts the batch.
 """
 
 import logging
+from typing import Dict, List
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -19,7 +20,7 @@ from payroll.models import EmailLog, PaySheet
 logger = logging.getLogger(__name__)
 
 
-def send_payslip_notifications(paysheets: list[PaySheet], batch_sent_at=None) -> dict:
+def send_payslip_notifications(paysheets: List[PaySheet], batch_sent_at=None) -> Dict:
     """
     Send payslip notification emails to a list of employees.
 

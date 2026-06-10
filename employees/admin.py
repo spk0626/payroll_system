@@ -19,7 +19,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from .models import Branch, Employee, EmployeeCategory
-from .signals import _generate_secure_password
+from .signals import _generate_secure_password, sync_user_account
 
 logger = logging.getLogger(__name__)
 
@@ -217,6 +217,14 @@ class EmployeeAdmin(admin.ModelAdmin):
         count = 0
         for employee in queryset.select_related("user"):
             if not employee.user:
+                continue
+            if not sync_user_account(employee):
+                self.message_user(
+                    request,
+                    f"Could not sync login email for {employee.employee_number}. "
+                    "Check for duplicate user emails before resetting the password.",
+                    messages.ERROR,
+                )
                 continue
             new_password = _generate_secure_password()
             employee.user.set_password(new_password)

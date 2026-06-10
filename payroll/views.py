@@ -18,6 +18,7 @@ Security:
 
 import logging
 from decimal import Decimal, InvalidOperation
+from typing import Dict, List
 
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
@@ -61,7 +62,7 @@ def _get_owned_paysheet(uuid: str, user) -> PaySheet:
     return paysheet
 
 
-def _breakdown_rows(paysheet: PaySheet) -> list[dict[str, Decimal]]:
+def _breakdown_rows(paysheet: PaySheet) -> List[Dict[str, Decimal]]:
     rows = []
     for label, amount in paysheet.breakdown.items():
         try:

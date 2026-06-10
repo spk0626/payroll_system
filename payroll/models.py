@@ -7,6 +7,7 @@ behind a UUID public identifier to prevent sequential ID guessing.
 """
 
 import uuid
+from typing import Set
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -242,7 +243,7 @@ class CategoryParserConfig(models.Model):
     def __str__(self) -> str:
         return f"Parser config for {self.category.name}"
 
-    def get_fixed_labels_normalized(self) -> set[str]:
+    def get_fixed_labels_normalized(self) -> Set[str]:
         """Return fixed labels as lowercase stripped strings for matching."""
         return {label.strip().lower() for label in (self.fixed_info_row_labels or [])}
 

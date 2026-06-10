@@ -6,26 +6,23 @@ without pulling in the full model layer.
 """
 
 import os
+import zipfile
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
 
 # ─── File validators ───────────────────────────────────────────────────────────
 
-ALLOWED_EXCEL_MIME_TYPES = {
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/zip",  # XLSX files are zip archives; some magic libs report this
-}
-
 ALLOWED_EXCEL_EXTENSIONS = {".xlsx"}
 
 
 def validate_excel_file(file) -> None:
     """
-    Validate an uploaded Excel file by both extension and MIME type (magic bytes).
+    Validate an uploaded Excel file by extension, size, and XLSX structure.
 
     Extension checking alone is trivially bypassed by renaming a file.
-    Magic-byte checking reads the actual file header regardless of the name.
+    XLSX files are ZIP archives with known workbook entries, so inspect that
+    structure directly instead of relying on server-dependent MIME detection.
 
     Raises ValidationError if the file is invalid.
     """
@@ -45,25 +42,24 @@ def validate_excel_file(file) -> None:
             f"Maximum allowed size is {max_mb} MB."
         )
 
-    # Check magic bytes (actual file content)
+    # Check actual XLSX structure. On shared hosting, python-magic may report
+    # valid .xlsx files as application/octet-stream, so avoid MIME detection.
     try:
-        import magic  # python-magic; requires the native libmagic library
-
         file.seek(0)
-        header = file.read(8)
-        file.seek(0)
-        mime = magic.from_buffer(header, mime=True)
-        if mime not in ALLOWED_EXCEL_MIME_TYPES:
-            raise ValidationError(
-                f"File content does not match an Excel file (detected: {mime}). "
-                "Please upload a valid .xlsx file."
-            )
-    except ValidationError:
-        raise
-    except Exception:
-        # If python-magic is unavailable or fails, log and proceed.
-        # Extension check above still provides a basic guard.
-        import logging
-        logging.getLogger(__name__).warning(
-            "python-magic unavailable; skipping MIME type check for %s", file.name
+        with zipfile.ZipFile(file) as archive:
+            names = set(archive.namelist())
+            if "[Content_Types].xml" not in names or "xl/workbook.xml" not in names:
+                raise ValidationError(
+                    "File content does not match an Excel workbook. "
+                    "Please upload a valid .xlsx file."
+                )
+    except zipfile.BadZipFile:
+        raise ValidationError(
+            "File content does not match an Excel workbook. "
+            "Please upload a valid .xlsx file."
         )
+    finally:
+        try:
+            file.seek(0)
+        except Exception:
+            pass

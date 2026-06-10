@@ -221,6 +221,24 @@ class TestUploadBatchAdminActions(TestCase):
         self.assertEqual(other_log.status, EmailStatus.FAILED)
 
 
+class TestPaySheetAdmin(TestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            "admin@test.com", "admin@test.com", "Admin!Pass123"
+        )
+        self.client.login(username="admin@test.com", password="Admin!Pass123")
+        self.emp = _make_emp("paysheet-admin@test.com", "EMP303")
+        self.ps = _make_paysheet(self.emp)
+
+    def test_change_page_renders(self):
+        resp = self.client.get(
+            f"/{settings.ADMIN_URL}payroll/paysheet/{self.ps.pk}/change/"
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Salary data")
+
+
 class TestEmailLogRetryAction(TestCase):
     def setUp(self):
         self.superuser = User.objects.create_superuser(

@@ -7,6 +7,7 @@ must be generated server-side so the result is reliable across browsers/printers
 
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+from typing import Dict, List
 
 from django.conf import settings
 from reportlab.lib import colors
@@ -123,7 +124,7 @@ def _draw_pairs(pdf, pairs, x, y) -> None:
         y -= 12
 
 
-def _breakdown_rows(paysheet) -> list[dict]:
+def _breakdown_rows(paysheet) -> List[Dict]:
     rows = []
     for label, amount in paysheet.breakdown.items():
         try:

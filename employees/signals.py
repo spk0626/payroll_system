@@ -42,6 +42,41 @@ def _generate_secure_password(length: int = 14) -> str:
             return password
 
 
+def _name_parts(full_name):
+    parts = full_name.split() if full_name else []
+    first_name = parts[0] if parts else ""
+    last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
+    return first_name, last_name
+
+
+def sync_user_account(employee: Employee) -> bool:
+    """
+    Keep the linked Django User aligned with the Employee login identity.
+
+    Employee.email is the login username. If an admin edits the employee email,
+    the linked User must be updated too, otherwise password emails go to the new
+    address while login/password-reset still use the old User record.
+    """
+    if not employee.user_id:
+        return False
+
+    first_name, last_name = _name_parts(employee.full_name)
+    user = employee.user
+    user.username = employee.email
+    user.email = employee.email
+    user.first_name = first_name
+    user.last_name = last_name
+    user.is_active = employee.is_active
+    try:
+        user.save(update_fields=["username", "email", "first_name", "last_name", "is_active"])
+    except Exception:
+        logger.exception(
+            "Failed to sync user account for employee %s.", employee.employee_number
+        )
+        return False
+    return True
+
+
 @receiver(post_save, sender=Employee)
 def create_user_account(sender, instance: Employee, created: bool, **kwargs) -> None:
     """
@@ -55,19 +90,22 @@ def create_user_account(sender, instance: Employee, created: bool, **kwargs) -> 
     once to the admin and emailed to the employee.
     """
     if not created:
+        sync_user_account(instance)
         return
     if instance.user_id is not None:
+        sync_user_account(instance)
         return
 
     password = _generate_secure_password()
+    first_name, last_name = _name_parts(instance.full_name)
 
     try:
         user = User.objects.create_user(
             username=instance.email,
             email=instance.email,
             password=password,
-            first_name=instance.full_name.split()[0] if instance.full_name else "",
-            last_name=" ".join(instance.full_name.split()[1:]) if instance.full_name else "",
+            first_name=first_name,
+            last_name=last_name,
             is_active=instance.is_active,
         )
         # Update the employee record with the new user — skip signal to avoid recursion

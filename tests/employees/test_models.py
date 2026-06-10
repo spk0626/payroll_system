@@ -100,6 +100,23 @@ class TestEmployeeSignal(TestCase):
         assert employee.user_id == initial_user_id
         assert User.objects.filter(username="test@example.com").count() == 1
 
+    def test_user_login_email_syncs_when_employee_email_changes(self):
+        employee = self._make_employee()
+        initial_user_id = employee.user_id
+
+        employee.email = "updated@example.com"
+        employee.full_name = "Updated Employee"
+        employee.save()
+
+        employee.refresh_from_db()
+        user = employee.user
+        assert employee.user_id == initial_user_id
+        assert user.username == "updated@example.com"
+        assert user.email == "updated@example.com"
+        assert user.first_name == "Updated"
+        assert user.last_name == "Employee"
+        assert User.objects.filter(username="test@example.com").count() == 0
+
     def test_deactivate_soft_deletes_employee_and_user(self):
         employee = self._make_employee()
         employee.refresh_from_db()

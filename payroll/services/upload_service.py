@@ -17,7 +17,7 @@ import os
 import secrets
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 from django.conf import settings
 from django.db import transaction
@@ -50,11 +50,11 @@ class DiffResult:
 
     Presented to the admin before they confirm the upload commit.
     """
-    to_create: list[DiffEntry] = field(default_factory=list)
-    to_update: list[DiffEntry] = field(default_factory=list)
-    absent: list[DiffEntry] = field(default_factory=list)   # in DB but not in file
-    warnings: list[str] = field(default_factory=list)
-    errors: list[str] = field(default_factory=list)
+    to_create: List[DiffEntry] = field(default_factory=list)
+    to_update: List[DiffEntry] = field(default_factory=list)
+    absent: List[DiffEntry] = field(default_factory=list)   # in DB but not in file
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
     batch_id: Optional[int] = None
 
     @property
@@ -68,7 +68,7 @@ class DiffResult:
 
 # ─── Step 1: Save file ────────────────────────────────────────────────────────
 
-def save_upload_file(uploaded_file, category, month: int, year: int, user) -> tuple[str, UploadBatch]:
+def save_upload_file(uploaded_file, category, month: int, year: int, user) -> Tuple[str, UploadBatch]:
     """
     Save the uploaded file to private storage and create an UploadBatch record.
 
@@ -147,7 +147,7 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
 
     # Map employee_number → Employee object for records that passed parsing
     parsed_numbers = {r.employee_number for r in parse_result.records}
-    employees_map: dict[str, Employee] = {
+    employees_map: Dict[str, Employee] = {
         emp.employee_number: emp
         for emp in Employee.objects.filter(
             employee_number__in=parsed_numbers, is_active=True
@@ -155,7 +155,7 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
     }
 
     # Existing paysheets for this month/category
-    existing_paysheets: dict[int, PaySheet] = {
+    existing_paysheets: Dict[int, PaySheet] = {
         ps.employee_id: ps
         for ps in PaySheet.objects.filter(
             month=month, year=year, category_snapshot=category
@@ -163,7 +163,7 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
     }
 
     # Build diff
-    parsed_employee_ids: set[int] = set()
+    parsed_employee_ids: Set[int] = set()
 
     for record in parse_result.records:
         emp = employees_map.get(record.employee_number)
@@ -208,7 +208,7 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
 
 def commit_diff(
     diff: DiffResult,
-    remove_absent_ids: list[int],
+    remove_absent_ids: List[int],
     category,
     month: int,
     year: int,
@@ -293,7 +293,7 @@ def _mark_batch_failed(batch: UploadBatch, result: DiffResult) -> None:
     batch.save(update_fields=["status", "warnings", "processing_log"])
 
 
-def _build_log(diff: DiffResult, remove_absent_ids: list[int]) -> str:
+def _build_log(diff: DiffResult, remove_absent_ids: List[int]) -> str:
     lines = [
         f"Created: {len(diff.to_create)}",
         f"Updated: {len(diff.to_update)}",
