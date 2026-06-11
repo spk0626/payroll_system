@@ -84,11 +84,17 @@ body {
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 16px;
+  border-radius: 0;
   color: #ffffff;
   background: var(--primary);
   font-weight: 900;
   font-size: 15px;
+}
+
+.admin-brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .admin-brand-title,
@@ -118,7 +124,7 @@ body {
 #user-tools a,
 #logout-form button {
   color: var(--primary);
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 div.breadcrumbs {
@@ -143,7 +149,7 @@ div.breadcrumbs {
 .inline-group {
   overflow: hidden;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 0;
   background: #ffffff;
   box-shadow: 0 14px 34px rgba(23, 33, 47, 0.06);
 }
@@ -256,7 +262,7 @@ input,
 textarea,
 select,
 .vTextField {
-  border-radius: 14px;
+  border-radius: 0;
   border-color: #b8c5d1;
   font-size: 16px;
 }
@@ -273,9 +279,36 @@ input[type=submit],
 input[type=button],
 .submit-row input,
 a.button {
-  border-radius: 999px;
+  border-radius: 0;
   padding: 10px 18px;
   font-weight: 800;
+}
+
+.errorlist,
+.errors,
+.messagelist .error {
+  color: #9b2c13;
+}
+
+.errorlist {
+  border-color: #f2c0b5;
+  background: #fff1ed;
+}
+
+.breakdown-editor {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.breakdown-editor th,
+.breakdown-editor td {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.breakdown-editor input {
+  width: 100%;
+  border-radius: 0;
 }
 
 @media (max-width: 900px) {

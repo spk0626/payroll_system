@@ -59,7 +59,7 @@ def _make_paysheet(emp, batch=None, month=1, year=2025):
     )
 
 
-class TestCategoryParserConfigAdmin(TestCase):
+class TestEmployeeCategoryAdmin(TestCase):
     def setUp(self):
         self.superuser = User.objects.create_superuser(
             "admin@test.com", "admin@test.com", "Admin!Pass123"
@@ -73,12 +73,12 @@ class TestCategoryParserConfigAdmin(TestCase):
         )
         self.assertEqual(resp.status_code, 200)
 
-    def test_parser_config_inline_on_category_page(self):
+    def test_parser_config_not_required_on_category_page(self):
         resp = self.client.get(
             f"/{settings.ADMIN_URL}employees/employeecategory/{self.cat.pk}/change/"
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Excel parser configuration")
+        self.assertNotContains(resp, "Excel parser configuration")
 
 
 class TestUploadBatchAdminActions(TestCase):
@@ -133,7 +133,7 @@ class TestUploadBatchAdminActions(TestCase):
             PaySheet.objects.filter(employee=self.emp, month=2, year=2025).exists()
         )
 
-    def test_upload_requires_parser_config_before_saving_batch(self):
+    def test_upload_does_not_require_parser_config(self):
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.append(["Employee", self.emp.employee_number])
@@ -158,8 +158,19 @@ class TestUploadBatchAdminActions(TestCase):
         )
 
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "does not have an Excel parser configuration")
-        self.assertEqual(UploadBatch.objects.count(), 1)
+        self.assertTrue(
+            PaySheet.objects.filter(employee=self.emp, month=2, year=2025).exists()
+        )
+
+    def test_processed_batch_csv_download(self):
+        resp = self.client.get(
+            f"/{settings.ADMIN_URL}payroll/uploadbatch/{self.batch.pk}/download-csv/"
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Type"], "text/csv")
+        self.assertContains(resp, "Employee number")
+        self.assertContains(resp, self.emp.employee_number)
 
     def test_send_email_action(self):
         with patch("payroll.services.email_service._send_one"):
@@ -237,6 +248,25 @@ class TestPaySheetAdmin(TestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Salary data")
+        self.assertContains(resp, "Salary rows")
+
+    def test_change_page_saves_breakdown_table(self):
+        resp = self.client.post(
+            f"/{settings.ADMIN_URL}payroll/paysheet/{self.ps.pk}/change/",
+            {
+                "month": self.ps.month,
+                "year": self.ps.year,
+                "breakdown_label": ["Basic", "Allowance"],
+                "breakdown_amount": ["60000", "5000"],
+                "_save": "Save",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.ps.refresh_from_db()
+        self.assertEqual(self.ps.breakdown, {"Basic": "60000", "Allowance": "5000"})
+        self.assertEqual(self.ps.gross_total, Decimal("65000"))
 
 
 class TestEmailLogRetryAction(TestCase):

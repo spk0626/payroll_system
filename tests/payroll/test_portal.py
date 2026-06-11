@@ -58,6 +58,24 @@ class TestDashboard(TestCase):
         resp = self.client.get(reverse("payroll:dashboard"))
         self.assertEqual(len(resp.context["entries"]), 2)
 
+    def test_dashboard_filters_by_month_and_year(self):
+        _make_paysheet(self.emp, month=1, year=2025)
+        _make_paysheet(self.emp, month=2, year=2026)
+
+        resp = self.client.get(reverse("payroll:dashboard"), {"month": "2", "year": "2026"})
+
+        self.assertEqual(len(resp.context["entries"]), 1)
+        self.assertEqual(resp.context["entries"][0]["month"], 2)
+        self.assertTrue(resp.context["filters_applied"])
+
+    def test_dashboard_filter_empty_result_message(self):
+        _make_paysheet(self.emp, month=1, year=2025)
+
+        resp = self.client.get(reverse("payroll:dashboard"), {"month": "2", "year": "2025"})
+
+        self.assertEqual(len(resp.context["entries"]), 0)
+        self.assertContains(resp, "No paysheet found for the selected month/year.")
+
     def test_dashboard_requires_login(self):
         self.client.logout()
         resp = self.client.get(reverse("payroll:dashboard"), follow=False)

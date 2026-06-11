@@ -72,6 +72,7 @@ class TestEmployeeSignal(TestCase):
             "date_of_joining": "2024-01-01",
             "bank_name": "Bank of Ceylon",
             "bank_account_name": "Test User",
+            "bank_account_number": "1234567890",
             "bank_branch_name": "Colombo",
             "branch": self.branch,
             "category": self.category,
@@ -134,6 +135,10 @@ class TestEmployeeSignal(TestCase):
         self._make_employee(employee_number="EMP001", email="same@example.com")
         with pytest.raises(IntegrityError):
             self._make_employee(employee_number="EMP002", email="same@example.com")
+
+    def test_bank_account_number_is_saved(self):
+        employee = self._make_employee()
+        assert employee.bank_account_number == "1234567890"
 
     def test_str_representation(self):
         employee = self._make_employee()

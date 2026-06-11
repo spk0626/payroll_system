@@ -84,12 +84,26 @@ class DashboardView(EmployeeRequiredMixin, View):
     template_name = "payroll/dashboard.html"
 
     def get(self, request):
+        selected_month = request.GET.get("month", "").strip()
+        selected_year = request.GET.get("year", "").strip()
         paysheets = (
             PaySheet.objects
             .filter(employee=request.user.employee)
             .order_by("-year", "-month")
             .only("id", "month", "year", "gross_total", "updated_at")
         )
+        available_years = list(
+            PaySheet.objects
+            .filter(employee=request.user.employee)
+            .order_by("-year")
+            .values_list("year", flat=True)
+            .distinct()
+        )
+
+        if selected_month:
+            paysheets = paysheets.filter(month=selected_month)
+        if selected_year:
+            paysheets = paysheets.filter(year=selected_year)
 
         months_map = dict(MONTHS)
         entries = [
@@ -107,6 +121,11 @@ class DashboardView(EmployeeRequiredMixin, View):
         return render(request, self.template_name, {
             "entries": entries,
             "employee": request.user.employee,
+            "months": MONTHS,
+            "available_years": available_years,
+            "selected_month": selected_month,
+            "selected_year": selected_year,
+            "filters_applied": bool(selected_month or selected_year),
         })
 
 

@@ -56,6 +56,25 @@ class TestParserHappyPath(TestCase):
         self.assertEqual(emp1.breakdown["Basic"], Decimal("50000"))
         self.assertEqual(emp1.gross_total, Decimal("55000"))
 
+    def test_first_row_employee_numbers_without_parser_config(self):
+        rows = [
+            ["", "EMP001", "EMP002"],
+            ["Basic", 50000, 45000],
+            ["Allowance", 5000, 4000],
+        ]
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as f:
+            path = f.name
+        try:
+            _write_excel(rows, path)
+            result = parse_salary_sheet(path, known_employee_numbers={"EMP001", "EMP002"})
+        finally:
+            os.unlink(path)
+
+        self.assertFalse(result.has_fatal_errors)
+        self.assertEqual(len(result.records), 2)
+        emp1 = next(r for r in result.records if r.employee_number == "EMP001")
+        self.assertEqual(emp1.breakdown["Basic"], Decimal("50000"))
+
     def test_fixed_info_rows_are_skipped(self):
         rows = [
             ["Employee",    "EMP001"],

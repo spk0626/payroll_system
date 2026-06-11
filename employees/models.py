@@ -19,6 +19,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.constants import (
     BANK_ACCOUNT_NAME_MAX_LENGTH,
+    BANK_ACCOUNT_NUMBER_MAX_LENGTH,
     BANK_BRANCH_NAME_MAX_LENGTH,
     BANK_NAME_MAX_LENGTH,
     BRANCH_NAME_MAX_LENGTH,
@@ -134,6 +135,11 @@ class Employee(models.Model):
     bank_account_name = models.CharField(
         max_length=BANK_ACCOUNT_NAME_MAX_LENGTH,
         verbose_name=_("Bank account name"),
+    )
+    bank_account_number = models.CharField(
+        max_length=BANK_ACCOUNT_NUMBER_MAX_LENGTH,
+        blank=True,
+        verbose_name=_("Bank account number"),
     )
     bank_branch_name = models.CharField(
         max_length=BANK_BRANCH_NAME_MAX_LENGTH,

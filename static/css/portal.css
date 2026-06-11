@@ -85,11 +85,18 @@ a {
   width: 50px;
   height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 16px;
+  border-radius: 0;
   font-size: 20px;
   font-weight: 850;
   letter-spacing: 0;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.brand-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  background: #ffffff;
 }
 
 .brand-text {
@@ -212,7 +219,7 @@ input {
   width: 100%;
   min-height: 50px;
   border: 1px solid #b8c5d1;
-  border-radius: 14px;
+  border-radius: 0;
   padding: 12px 14px;
   color: var(--text);
   background: #ffffff;
@@ -240,7 +247,7 @@ input:focus {
   min-width: 64px;
   min-height: 36px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--brand);
   background: #e7f2f4;
   font: inherit;
@@ -317,7 +324,7 @@ input:focus {
   margin: 10px 0 0;
   padding: 10px 12px;
   border: 1px solid #f2c0b5;
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--danger-text);
   background: var(--danger-bg);
   list-style: none;
@@ -569,7 +576,7 @@ input:focus {
   align-items: center;
   min-height: 24px;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--brand-strong);
   background: #edf8f9;
   font-size: 12px;

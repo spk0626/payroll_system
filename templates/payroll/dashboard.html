@@ -6,35 +6,45 @@
 
 {% block extra_css %}
 <style>
-.portal-header{background:#1a3a5c;color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.portal-page{font-family:Inter,"Segoe UI",Arial,Helvetica,sans-serif}
+.portal-header{background:#005f73;color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.portal-header__brand{display:flex;align-items:center;gap:.75rem}
+.portal-header__logo{width:38px;height:38px;object-fit:contain;background:#fff}
+.portal-header__mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid rgba(255,255,255,.4);font-weight:800}
 .portal-header__title{font-size:16px;font-weight:600}
 .portal-header__user{font-size:13px;opacity:.8;display:flex;align-items:center;gap:1rem}
 .portal-main{max-width:720px;margin:2rem auto;padding:0 1rem}
 .portal-welcome{margin-bottom:2rem}
-.portal-welcome h1{font-size:22px;font-weight:600;color:#1a3a5c;margin-bottom:.25rem}
+.portal-welcome h1{font-size:22px;font-weight:600;color:#005f73;margin-bottom:.25rem}
 .portal-welcome p{color:#666;font-size:14px}
 .portal-actions{display:flex;justify-content:flex-end;align-items:center;gap:.75rem;margin:-.75rem 0 1rem}
-.portal-actions__button{display:inline-block;padding:.55rem 1rem;background:#1a3a5c;color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600}
-.portal-actions__button:hover{background:#24496f;color:#fff}
-.portal-actions__link{color:#1a3a5c;font-size:13px;text-decoration:none}
+.portal-actions__button{display:inline-block;padding:.55rem 1rem;background:#005f73;color:#fff;border-radius:0;text-decoration:none;font-size:13px;font-weight:600}
+.portal-actions__button:hover{background:#004a5a;color:#fff}
+.portal-actions__link{color:#005f73;font-size:13px;text-decoration:none}
 .portal-actions__link:hover{text-decoration:underline}
+.payslip-filter{display:grid;grid-template-columns:1fr 1fr auto auto;gap:.75rem;align-items:end;margin-bottom:1rem;padding:1rem;background:#fff;border:1px solid #e0e0e0}
+.payslip-filter label{display:block;margin-bottom:.25rem;font-size:12px;font-weight:700;color:#555}
+.payslip-filter select{width:100%;height:38px;border:1px solid #c7d2da;border-radius:0;padding:0 .5rem;font:inherit}
+.payslip-filter button,.payslip-filter a{height:38px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:0;padding:0 .9rem;background:#005f73;color:#fff;text-decoration:none;font-size:13px;font-weight:700}
+.payslip-filter a{background:#e7f2f4;color:#005f73}
 .payslip-list{display:flex;flex-direction:column;gap:.75rem}
-.payslip-card{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
-.payslip-card:hover{border-color:#2e75b6;box-shadow:0 2px 8px rgba(46,117,182,.12)}
-.payslip-card__period{font-weight:600;color:#1a3a5c;font-size:15px}
+.payslip-card{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;background:#fff;border:1px solid #e0e0e0;border-radius:0;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s}
+.payslip-card:hover{border-color:#005f73;box-shadow:0 2px 8px rgba(0,95,115,.12)}
+.payslip-card__period{font-weight:600;color:#005f73;font-size:15px}
 .payslip-card__sub{font-size:12px;color:#888;margin-top:.2rem}
 .payslip-card__amount{text-align:right}
-.payslip-card__total{font-weight:700;color:#1a3a5c;font-size:16px}
+.payslip-card__total{font-weight:700;color:#005f73;font-size:16px}
 .payslip-card__label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
 .payslip-card__arrow{color:#ccc;font-size:20px;margin-left:.75rem}
 .payslip-empty{text-align:center;padding:3rem;color:#888}
 .payslip-empty__icon{font-size:48px;margin-bottom:1rem}
-.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:11px;font-weight:600}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:0;font-size:11px;font-weight:600}
 .badge--new{background:#e3f2fd;color:#1565c0}
 @media (max-width: 640px){
   .portal-header{align-items:flex-start;flex-direction:column;gap:.75rem;padding:1rem}
   .portal-header__user{align-items:flex-start;flex-direction:column;gap:.5rem}
   .portal-actions{justify-content:flex-start}
+  .payslip-filter{grid-template-columns:1fr}
   .payslip-card{align-items:flex-start;flex-direction:column}
   .payslip-card__amount{text-align:left}
 }
@@ -43,7 +53,14 @@
 
 {% block content %}
 <header class="portal-header">
-  <span class="portal-header__title">{{ COMPANY_NAME }} - Payslip Portal</span>
+  <span class="portal-header__brand">
+    {% if COMPANY_LOGO_URL %}
+      <img class="portal-header__logo" src="{{ COMPANY_LOGO_URL }}" alt="{{ COMPANY_NAME }} logo">
+    {% else %}
+      <span class="portal-header__mark">SA</span>
+    {% endif %}
+    <span class="portal-header__title">{{ COMPANY_NAME }} - Payslip Portal</span>
+  </span>
   <span class="portal-header__user">
     {{ employee.full_name }}
     <form method="post" action="{% url 'accounts:logout' %}" style="margin:0">
@@ -58,6 +75,29 @@
     <h1>Your payslips</h1>
     <p>Select a month to view your full salary breakdown.</p>
   </div>
+
+  <form class="payslip-filter" method="get">
+    <div>
+      <label for="month">Month</label>
+      <select id="month" name="month">
+        <option value="">All months</option>
+        {% for value, label in months %}
+          <option value="{{ value }}" {% if selected_month == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="year">Year</label>
+      <select id="year" name="year">
+        <option value="">All years</option>
+        {% for year in available_years %}
+          <option value="{{ year }}" {% if selected_year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">Filter</button>
+    <a href="{% url 'payroll:dashboard' %}">Clear</a>
+  </form>
 
   {% if entries %}
     <div class="portal-actions">
@@ -91,8 +131,13 @@
   {% else %}
     <div class="payslip-empty">
       <div class="payslip-empty__icon">Payslips</div>
-      <p>No payslips available yet.</p>
-      <p style="font-size:13px;margin-top:.5rem">Your payslips will appear here once salary is processed.</p>
+      {% if filters_applied %}
+        <p>No paysheet found for the selected month/year.</p>
+        <p style="font-size:13px;margin-top:.5rem">Try another period or clear the filter.</p>
+      {% else %}
+        <p>No payslips available yet.</p>
+        <p style="font-size:13px;margin-top:.5rem">Your payslips will appear here once salary is processed.</p>
+      {% endif %}
     </div>
   {% endif %}
 </main>

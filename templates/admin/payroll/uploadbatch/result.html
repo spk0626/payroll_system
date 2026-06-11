@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>Upload summary</h2>
+    <table>
+      <tbody>
+        <tr><th>Category</th><td>{{ batch.category }}</td></tr>
+        <tr><th>Period</th><td>{{ batch.get_month_display }} {{ batch.year }}</td></tr>
+        <tr><th>Created</th><td>{{ batch.records_created }}</td></tr>
+        <tr><th>Updated</th><td>{{ batch.records_updated }}</td></tr>
+        <tr><th>Warnings</th><td>{{ warnings|length }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="submit-row">
+    <a class="button" href="{% url 'admin:payroll_uploadbatch_download_csv' batch.pk %}">Download CSV</a>
+    <a class="button" href="{% url 'admin:payroll_uploadbatch_change' batch.pk %}">View upload record</a>
+    <a class="button" href="{% url 'admin:payroll_uploadbatch_upload' %}">Upload another sheet</a>
+  </div>
+
+  {% if warnings %}
+    <div class="module">
+      <h2>Warnings</h2>
+      <ul class="messagelist">
+        {% for warning in warnings %}
+          <li class="warning">{{ warning }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="module">
+    <h2>Processed paysheets</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Employee number</th>
+          <th>Employee</th>
+          <th>Gross total</th>
+          <th>Rows</th>
+          <th>Edit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for paysheet in paysheets %}
+          <tr>
+            <td>{{ paysheet.employee.employee_number }}</td>
+            <td>{{ paysheet.employee.full_name }}</td>
+            <td>{{ CURRENCY_SYMBOL }} {{ paysheet.gross_total|floatformat:2 }}</td>
+            <td>{{ paysheet.breakdown|length }}</td>
+            <td><a href="{% url 'admin:payroll_paysheet_change' paysheet.pk %}">Edit rows</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No paysheets were created or updated.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
