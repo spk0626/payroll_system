@@ -14,10 +14,11 @@
 .portal-header__title{font-size:16px;font-weight:700}
 .portal-header__user{font-size:13px;color:rgba(255,255,255,.84);display:flex;align-items:center;gap:1rem}
 .portal-main{max-width:880px;margin:2.25rem auto;padding:0 1rem}
-.portal-welcome{margin-bottom:1.75rem}
+.portal-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1.25rem;margin-bottom:1.4rem}
+.portal-welcome{margin:0}
 .portal-welcome h1{font-size:24px;font-weight:700;color:#244A78;margin-bottom:.35rem}
 .portal-welcome p{color:#666;font-size:14px}
-.portal-actions{display:flex;justify-content:flex-end;align-items:center;gap:.85rem;margin:-.25rem 0 1.25rem}
+.portal-actions{display:flex;align-items:center;gap:.85rem;flex-shrink:0}
 .portal-actions__button{display:inline-block;padding:.6rem 1rem;background:#2F5F98;color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600}
 .portal-actions__button:hover{background:#244A78;color:#fff}
 .portal-actions__link{color:#2F5F98;font-size:13px;text-decoration:none}
@@ -43,7 +44,8 @@
 @media (max-width: 640px){
   .portal-header{align-items:flex-start;flex-direction:column;gap:.75rem;padding:1rem}
   .portal-header__user{align-items:flex-start;flex-direction:column;gap:.5rem}
-  .portal-actions{justify-content:flex-start}
+  .portal-heading{align-items:flex-start;flex-direction:column}
+  .portal-actions{justify-content:flex-start;flex-wrap:wrap}
   .payslip-filter{grid-template-columns:1fr}
   .payslip-card{align-items:flex-start;flex-direction:column}
   .payslip-card__amount{text-align:left}
@@ -71,19 +73,20 @@
 </header>
 
 <main class="portal-main">
-  <div class="portal-welcome">
-    <h1>Your payslips</h1>
-    <p>Select a month to view your full salary breakdown.</p>
-  </div>
-
-  {% if entries %}
-    <div class="portal-actions">
-      <a href="{% url 'payroll:payslip_download_all' %}" class="portal-actions__button">
-        Download all payslips
-      </a>
-      <a href="{% url 'payroll:payslip_print_all' %}" target="_blank" class="portal-actions__link">Print preview</a>
+  <div class="portal-heading">
+    <div class="portal-welcome">
+      <h1>Your payslips</h1>
+      <p>Select a month to view your full salary breakdown.</p>
     </div>
-  {% endif %}
+    {% if entries %}
+      <div class="portal-actions">
+        <a href="{% url 'payroll:payslip_download_all' %}" class="portal-actions__button">
+          Download all payslips
+        </a>
+        <a href="{% url 'payroll:payslip_print_all' %}" target="_blank" class="portal-actions__link">Print preview</a>
+      </div>
+    {% endif %}
+  </div>
 
   <form class="payslip-filter" method="get">
     <div>

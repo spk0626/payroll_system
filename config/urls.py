@@ -14,6 +14,7 @@ from django.views.generic import RedirectView
 admin.site.site_header = f"{settings.COMPANY_NAME} — Payroll Administration"
 admin.site.site_title = f"{settings.COMPANY_NAME} Payroll"
 admin.site.index_title = "Administration"
+admin.site.enable_nav_sidebar = False
 
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="accounts:login", permanent=False), name="home"),
