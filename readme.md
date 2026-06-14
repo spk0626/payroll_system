@@ -16,6 +16,73 @@ history. Employees log in to view and print their own payslips.
 - Upload history, email history, and admin audit views
 - Security headers, rate-limited login, and custom error pages
 
+## How To Run Locally
+
+For first-time setup on Windows, use:
+
+```bat
+setup_first_time.bat
+```
+
+It creates `.venv` if missing, installs dependencies, applies migrations, and
+runs Django checks. It does not delete the database.
+
+After setup, start the server with:
+
+```bat
+run_payroll.bat
+```
+
+The app runs at:
+
+```text
+http://127.0.0.1:8004/
+```
+
+### First Time Setup
+
+Run these commands from the project folder:
+
+```bat
+py -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe manage.py migrate
+.venv\Scripts\python.exe manage.py check
+```
+
+Then start the app:
+
+```bat
+run_payroll.bat
+```
+
+Open:
+
+```text
+http://127.0.0.1:8004/
+```
+
+### Next Time
+
+Use the batch file:
+
+```bat
+run_payroll.bat
+```
+
+`run_payroll.bat` does not create a virtual environment, install packages,
+run migrations, seed data, or create a new database. It only starts the existing
+app environment.
+
+You can also run the server directly:
+
+```bat
+.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8004
+```
+
+Keep the terminal window open while using the app. Press `Ctrl+C` to stop the
+server.
+
 ## User Manual
 
 ### Admin Login
@@ -25,7 +92,7 @@ history. Employees log in to view and print their own payslips.
    /management-portal/
    ```
 2. Sign in with a staff or superadmin account.
-3. Superadmins can manage other admin users from Django's Users section.
+3. Superadmins can manage other admin users from Admin accounts.
 
 ### Branches And Employee Categories
 
@@ -38,30 +105,8 @@ Employee categories are groups such as:
 - Management
 - Any other payroll grouping used by the company
 
-Each employee belongs to one category at a time. Categories matter because
-different categories may use different Excel salary formats.
-
-### Category Parser Configs
-
-`CategoryParserConfig` tells the system how to read an Excel sheet for one
-employee category.
-
-In client-facing language:
-
-> A parser config is the salary-sheet reading rule for a category. It tells the
-> system which row contains employee numbers and which rows are only information
-> rows, so the remaining rows can be treated as salary components.
-
-Example:
-
-| Field | Example | Meaning |
-| --- | --- | --- |
-| Category | Permanent Staff | The employee group this rule applies to |
-| Employee ID row label | Employee | The label in column A for the row containing employee numbers |
-| Fixed info row labels | `["Employee Name", "Designation"]` | Rows to ignore because they are not salary amounts |
-
-Keep `CategoryParserConfig`. It is useful because it lets Syntax Asia change
-Excel formats by category without changing code.
+Each employee belongs to one category at a time. Categories are used to group
+employees for payroll uploads and filtering.
 
 ### Adding Employees
 
@@ -80,10 +125,18 @@ If an employee cannot log in, use the admin action to reset their password.
 2. Click `Upload salary sheet`.
 3. Select category, month, year, and the `.xlsx` file.
 4. Submit the upload.
-5. The system parses the file, creates or updates paysheets, and records warnings.
+5. The system parses the file, creates or updates paysheets, and shows a table
+   of processed paysheets.
+
+Salary sheet format:
+
+- Row 1 contains employee numbers from column B onward.
+- Column A contains salary row labels such as Basic, Allowance, or Deduction.
+- Rows below row 1 are treated as dynamic salary rows.
 
 Unknown employee numbers are skipped and shown as warnings. Existing paysheets
-for the same month are updated instead of duplicated.
+for the same month are updated instead of duplicated. Admins can download the
+processed batch as CSV for Excel.
 
 ### Employee Portal
 

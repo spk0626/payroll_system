@@ -40,7 +40,7 @@ def _draw_payslip_page(pdf, paysheet) -> None:
     month_name = dict(MONTHS).get(paysheet.month, str(paysheet.month))
     currency = getattr(settings, "CURRENCY_SYMBOL", "LKR")
 
-    primary = colors.HexColor("#005f73")
+    primary = colors.HexColor("#0243B0")
     pdf.setStrokeColor(primary)
     pdf.setLineWidth(1.5)
     pdf.setFont("Helvetica-Bold", 14)
@@ -139,7 +139,7 @@ def _draw_logo(pdf, x, y) -> None:
     except Exception:
         pass
 
-    pdf.setFillColor(colors.HexColor("#005f73"))
+    pdf.setFillColor(colors.HexColor("#0243B0"))
     pdf.rect(x + 16, y, 42, 42, fill=1, stroke=0)
     pdf.setFillColor(colors.white)
     pdf.setFont("Helvetica-Bold", 12)

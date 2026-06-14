@@ -33,12 +33,12 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   padding-bottom: 8px;
-  border-bottom: 2px solid #005f73;
+  border-bottom: 2px solid #0243B0;
   margin-bottom: 10px;
 }
 
 .slip-header__company-name {
-  color: #005f73;
+  color: #0243B0;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: .02em;
@@ -58,7 +58,7 @@ body {
   justify-content: center;
   border-radius: 0;
   color: #fff;
-  background: #005f73;
+  background: #0243B0;
   font-weight: 700;
 }
 
@@ -74,7 +74,7 @@ body {
 }
 
 .slip-title h1 {
-  color: #005f73;
+  color: #0243B0;
   font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
@@ -121,7 +121,7 @@ body {
 
 .slip-table thead tr,
 .slip-table tfoot tr {
-  background: #005f73;
+  background: #0243B0;
 }
 
 .slip-table thead th {

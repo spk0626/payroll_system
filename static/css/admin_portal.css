@@ -1,6 +1,6 @@
 :root {
-  --primary: #005f73;
-  --secondary: #004a5a;
+  --primary: #0243B0;
+  --secondary: #01358f;
   --accent: #b98400;
   --primary-fg: #ffffff;
   --body-bg: #f3f6f8;
@@ -11,21 +11,21 @@
   --darkened-bg: #f8fafb;
   --selected-bg: #eef7f8;
   --selected-row: #eef7f8;
-  --link-selected-fg: #003f4c;
-  --link-fg: #005f73;
-  --link-hover-color: #004a5a;
-  --button-bg: #005f73;
-  --button-hover-bg: #004a5a;
-  --default-button-bg: #005f73;
-  --default-button-hover-bg: #004a5a;
+  --link-selected-fg: #01358f;
+  --link-fg: #0243B0;
+  --link-hover-color: #01358f;
+  --button-bg: #0243B0;
+  --button-hover-bg: #01358f;
+  --default-button-bg: #0243B0;
+  --default-button-hover-bg: #01358f;
   --font-family-primary: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
   --font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 html[data-theme="dark"],
 html[data-theme="light"] {
-  --primary: #005f73;
-  --secondary: #004a5a;
+  --primary: #0243B0;
+  --secondary: #01358f;
   --accent: #b98400;
   --primary-fg: #ffffff;
   --body-bg: #f3f6f8;
@@ -36,13 +36,13 @@ html[data-theme="light"] {
   --darkened-bg: #f8fafb;
   --selected-bg: #eef7f8;
   --selected-row: #eef7f8;
-  --link-selected-fg: #003f4c;
-  --link-fg: #005f73;
-  --link-hover-color: #004a5a;
-  --button-bg: #005f73;
-  --button-hover-bg: #004a5a;
-  --default-button-bg: #005f73;
-  --default-button-hover-bg: #004a5a;
+  --link-selected-fg: #01358f;
+  --link-fg: #0243B0;
+  --link-hover-color: #01358f;
+  --button-bg: #0243B0;
+  --button-hover-bg: #01358f;
+  --default-button-bg: #0243B0;
+  --default-button-hover-bg: #01358f;
 }
 
 html {
@@ -271,7 +271,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--primary);
-  outline: 3px solid rgba(0, 95, 115, 0.18);
+  outline: 3px solid rgba(2, 67, 176, 0.18);
 }
 
 .button,
