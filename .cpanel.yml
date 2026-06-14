@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/syntumfz/pay.syntaxasia.digital/
+    - /usr/bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.env' --exclude='.env.production' --exclude='.venv' --exclude='db.sqlite3' --exclude='media/' --exclude='salary_uploads/' --exclude='logs/' ./ $DEPLOYPATH
