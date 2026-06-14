@@ -6,6 +6,7 @@ without the view needing to pass them explicitly every time.
 """
 
 from django.conf import settings
+from django.templatetags.static import static
 
 
 def company_settings(request):
@@ -19,6 +20,9 @@ def company_settings(request):
             logo_url = setting.logo.url
     except Exception:
         logo_url = ""
+
+    if not logo_url:
+        logo_url = static("img/syntax-asia-logo.svg")
 
     return {
         "COMPANY_NAME": getattr(settings, "COMPANY_NAME", ""),

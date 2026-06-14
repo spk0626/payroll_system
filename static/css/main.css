@@ -1,15 +1,15 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    Syntax Asia Salary System — main.css
    Design: clean, professional, minimal. No gradients. No shadows.
-   Palette: Teal (#005f73) primary, warm white (#fafafa) bg.
+   Palette: steel blue (#2F5F98) primary, warm white (#fafafa) bg.
    ───────────────────────────────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --c-primary:    #005f73;
-  --c-primary-dk: #004a5a;
-  --c-accent:     #005f73;
+  --c-primary:    #2F5F98;
+  --c-primary-dk: #244A78;
+  --c-accent:     #2F5F98;
   --c-danger:     #c62828;
   --c-warning:    #e65100;
   --c-success:    #2e7d32;
@@ -23,13 +23,13 @@
   --text-muted:     #888;
 
   --border:         #e0e0e0;
-  --border-focus:   #005f73;
+  --border-focus:   #2F5F98;
   --bg:             #fafafa;
   --bg-card:        #ffffff;
   --bg-input:       #ffffff;
 
-  --radius:    0;
-  --radius-lg: 0;
+  --radius:    6px;
+  --radius-lg: 8px;
   --font:      Inter, "Segoe UI", Arial, sans-serif;
   --transition: 150ms ease;
 }
