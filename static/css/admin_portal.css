@@ -1,6 +1,6 @@
 :root {
-  --primary: #005f73;
-  --secondary: #004a5a;
+  --primary: #0243B0;
+  --secondary: #01358f;
   --accent: #b98400;
   --primary-fg: #ffffff;
   --body-bg: #f3f6f8;
@@ -11,21 +11,21 @@
   --darkened-bg: #f8fafb;
   --selected-bg: #eef7f8;
   --selected-row: #eef7f8;
-  --link-selected-fg: #003f4c;
-  --link-fg: #005f73;
-  --link-hover-color: #004a5a;
-  --button-bg: #005f73;
-  --button-hover-bg: #004a5a;
-  --default-button-bg: #005f73;
-  --default-button-hover-bg: #004a5a;
+  --link-selected-fg: #01358f;
+  --link-fg: #0243B0;
+  --link-hover-color: #01358f;
+  --button-bg: #0243B0;
+  --button-hover-bg: #01358f;
+  --default-button-bg: #0243B0;
+  --default-button-hover-bg: #01358f;
   --font-family-primary: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
   --font-family-monospace: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 html[data-theme="dark"],
 html[data-theme="light"] {
-  --primary: #005f73;
-  --secondary: #004a5a;
+  --primary: #0243B0;
+  --secondary: #01358f;
   --accent: #b98400;
   --primary-fg: #ffffff;
   --body-bg: #f3f6f8;
@@ -36,13 +36,13 @@ html[data-theme="light"] {
   --darkened-bg: #f8fafb;
   --selected-bg: #eef7f8;
   --selected-row: #eef7f8;
-  --link-selected-fg: #003f4c;
-  --link-fg: #005f73;
-  --link-hover-color: #004a5a;
-  --button-bg: #005f73;
-  --button-hover-bg: #004a5a;
-  --default-button-bg: #005f73;
-  --default-button-hover-bg: #004a5a;
+  --link-selected-fg: #01358f;
+  --link-fg: #0243B0;
+  --link-hover-color: #01358f;
+  --button-bg: #0243B0;
+  --button-hover-bg: #01358f;
+  --default-button-bg: #0243B0;
+  --default-button-hover-bg: #01358f;
 }
 
 html {
@@ -84,11 +84,17 @@ body {
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 16px;
+  border-radius: 0;
   color: #ffffff;
   background: var(--primary);
   font-weight: 900;
   font-size: 15px;
+}
+
+.admin-brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .admin-brand-title,
@@ -118,7 +124,7 @@ body {
 #user-tools a,
 #logout-form button {
   color: var(--primary);
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 div.breadcrumbs {
@@ -143,7 +149,7 @@ div.breadcrumbs {
 .inline-group {
   overflow: hidden;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 0;
   background: #ffffff;
   box-shadow: 0 14px 34px rgba(23, 33, 47, 0.06);
 }
@@ -256,7 +262,7 @@ input,
 textarea,
 select,
 .vTextField {
-  border-radius: 14px;
+  border-radius: 0;
   border-color: #b8c5d1;
   font-size: 16px;
 }
@@ -265,7 +271,7 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--primary);
-  outline: 3px solid rgba(0, 95, 115, 0.18);
+  outline: 3px solid rgba(2, 67, 176, 0.18);
 }
 
 .button,
@@ -273,9 +279,36 @@ input[type=submit],
 input[type=button],
 .submit-row input,
 a.button {
-  border-radius: 999px;
+  border-radius: 0;
   padding: 10px 18px;
   font-weight: 800;
+}
+
+.errorlist,
+.errors,
+.messagelist .error {
+  color: #9b2c13;
+}
+
+.errorlist {
+  border-color: #f2c0b5;
+  background: #fff1ed;
+}
+
+.breakdown-editor {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.breakdown-editor th,
+.breakdown-editor td {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.breakdown-editor input {
+  width: 100%;
+  border-radius: 0;
 }
 
 @media (max-width: 900px) {

@@ -149,6 +149,7 @@ def _send_welcome_email(employee: Employee, password: str) -> None:
             "password": password,
             "company_name": settings.COMPANY_NAME,
             "login_url": f"{settings.SITE_URL.rstrip('/')}/login/",
+            "reset_url": f"{settings.SITE_URL.rstrip('/')}/forgot-password/",
         }
         body = render_to_string("accounts/email/welcome.txt", context)
         send_mail(

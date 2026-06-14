@@ -13,7 +13,11 @@
     <section class="auth-composition" aria-label="{% block aria_label %}{% endblock %}">
       <div class="auth-brand">
         <div class="brand-lockup">
-          <div class="brand-mark">SA</div>
+          {% if COMPANY_LOGO_URL %}
+            <img class="brand-logo" src="{{ COMPANY_LOGO_URL }}" alt="{{ COMPANY_NAME }} logo">
+          {% else %}
+            <div class="brand-mark">SA</div>
+          {% endif %}
           <div class="brand-text">
             <div class="brand-name">{% block brand_name %}{{ COMPANY_NAME|default:"Syntax Asia" }}{% endblock %}</div>
             <div class="brand-subtitle">{% block brand_subtitle %}{% endblock %}</div>

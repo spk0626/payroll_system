@@ -6,8 +6,8 @@ No Django model writes happen here — this is pure data transformation.
 The upload view handles database operations using the ParseResult.
 
 Design:
-  - Configuration-driven: uses CategoryParserConfig to know which row
-    holds employee IDs and which rows to skip (fixed info rows).
+  - HR-friendly default: first row contains employee numbers, column A contains
+    dynamic payroll row labels below it.
   - Defensive: every edge case is handled explicitly with a warning,
     not an exception. The caller always gets a result even if partial.
   - No side effects: this function reads; it never writes to DB or disk.
@@ -71,11 +71,13 @@ class ParseResult:
 
 def parse_salary_sheet(
     file_path: str,
-    emp_id_row_label: str,
-    fixed_info_row_labels: List[str],
-    known_employee_numbers: Set[str],
+    emp_id_row_label: str = None,
+    fixed_info_row_labels: List[str] = None,
+    known_employee_numbers: Set[str] = None,
 ) -> ParseResult:
     result = ParseResult()
+    fixed_info_row_labels = fixed_info_row_labels or []
+    known_employee_numbers = known_employee_numbers or set()
 
     # 1. Read file
     try:
@@ -95,25 +97,28 @@ def parse_salary_sheet(
         result.errors.append("The uploaded file is empty.")
         return result
 
-    # 2. Normalise labels
-    id_label_norm = emp_id_row_label.strip().lower()
+    # 2. Find employee ID row.
+    # New uploads use row 1. The labelled-row path remains for old tests and
+    # any internal caller that still passes a label explicitly.
+    if emp_id_row_label:
+        id_label_norm = emp_id_row_label.strip().lower()
+        id_row_index = None
+        for idx, row in df.iterrows():
+            cell = str(row.iloc[0]).strip().lower() if pd.notna(row.iloc[0]) else ""
+            if cell == id_label_norm:
+                id_row_index = idx
+                break
+
+        if id_row_index is None:
+            result.errors.append(
+                f"Employee number row not found. Expected a row in column A labelled "
+                f"'{emp_id_row_label}'."
+            )
+            return result
+    else:
+        id_row_index = 0
+
     fixed_norms = {label.strip().lower() for label in fixed_info_row_labels}
-
-    # 3. Find employee ID row
-    id_row_index = None
-    for idx, row in df.iterrows():
-        cell = str(row.iloc[0]).strip().lower() if pd.notna(row.iloc[0]) else ""
-        if cell == id_label_norm:
-            id_row_index = idx
-            break
-
-    if id_row_index is None:
-        result.errors.append(
-            f"Employee ID row not found. Expected a row in column A labelled "
-            f"'{emp_id_row_label}'. Check the sheet format or update the "
-            f"category parser configuration."
-        )
-        return result
 
     # 4. Identify employee columns (col B onwards)
     id_row = df.iloc[id_row_index]
@@ -137,7 +142,7 @@ def parse_salary_sheet(
         employee_columns[emp_number] = col_idx
 
     if not employee_columns:
-        result.warnings.append("No employee columns found in the sheet.")
+        result.errors.append("No employee numbers found in row 1.")
         return result
 
     # 5. Collect salary component rows

@@ -5,17 +5,16 @@ Design goals:
 - Every action is obvious — admins should never need to google "how to do X"
 - Bulk category assignment is a dropdown action, one click
 - Password reset is a bulk action with immediate email confirmation
-- CategoryParserConfig is editable inline on the category page (set it once, forget it)
+- Payroll uploads read employee numbers from row 1, so categories stay simple
 - Status badges make employee state instantly readable at a glance
 """
 
 import logging
 
-from django.conf import settings
+from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth.models import User
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from .models import Branch, Employee, EmployeeCategory
@@ -39,63 +38,20 @@ class BranchAdmin(admin.ModelAdmin):
 
 # ─── EmployeeCategory (with inline parser config) ─────────────────────────────
 
-class CategoryParserConfigInline(admin.StackedInline):
-    """
-    Inline editor for parser config directly on the category page.
-
-    Admins set the parser config once when creating a category,
-    and it stays there. No need to navigate to a separate admin.
-    """
-
-    from payroll.models import CategoryParserConfig
-    model = CategoryParserConfig
-    extra = 1
-    max_num = 1
-    can_delete = False
-    verbose_name = "Excel parser configuration"
-    verbose_name_plural = "Excel parser configuration"
-
-    fieldsets = [
-        (
-            None,
-            {
-                "fields": ["emp_id_row_label", "fixed_info_row_labels", "notes"],
-                "description": (
-                    "<strong>Employee ID row label</strong>: the text in column A "
-                    "that marks the employee number row (e.g. <code>Employee</code>, "
-                    "<code>Staff ID</code>).<br>"
-                    "<strong>Fixed info row labels</strong>: JSON list of rows to skip "
-                    "(not salary components). E.g. "
-                    '<code>["Employee Name", "Designation"]</code>'
-                ),
-            },
-        )
-    ]
-
-
 @admin.register(EmployeeCategory)
 class EmployeeCategoryAdmin(admin.ModelAdmin):
     list_display = [
         "name",
         "employee_count",
-        "has_parser_config",
         "description_preview",
         "created_at",
     ]
     search_fields = ["name", "description"]
     ordering = ["name"]
-    inlines = [CategoryParserConfigInline]
 
     @admin.display(description="Active employees")
     def employee_count(self, obj: EmployeeCategory) -> int:
         return obj.employees.filter(is_active=True).count()
-
-    @admin.display(description="Parser config")
-    def has_parser_config(self, obj: EmployeeCategory):
-        has = hasattr(obj, "parser_config")
-        if has:
-            return mark_safe('<span style="color:#2e7d32;font-weight:600;">✓ Configured</span>')
-        return mark_safe('<span style="color:#c62828;">✗ Not set — upload will fail</span>')
 
     @admin.display(description="Description")
     def description_preview(self, obj: EmployeeCategory) -> str:
@@ -122,6 +78,15 @@ def _assign_to_category_action_factory(category):
     return assign_action
 
 
+class EmployeeAdminForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = "__all__"
+        widgets = {
+            "date_of_joining": forms.SelectDateWidget(years=range(1990, 2101)),
+        }
+
+
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     # ── List view ─────────────────────────────────────────────────────────────
@@ -142,6 +107,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     list_per_page = 50
     list_select_related = ["branch", "category", "user"]
     date_hierarchy = "date_of_joining"
+    form = EmployeeAdminForm
 
     # ── Detail view ────────────────────────────────────────────────────────────
     fieldsets = [
@@ -165,7 +131,12 @@ class EmployeeAdmin(admin.ModelAdmin):
             "Bank details",
             {
                 "classes": ["collapse"],
-                "fields": ["bank_name", "bank_account_name", "bank_branch_name"],
+                "fields": [
+                    "bank_name",
+                    "bank_account_name",
+                    "bank_account_number",
+                    "bank_branch_name",
+                ],
                 "description": "Shown on printed payslips. Expand to view or edit.",
             },
         ),
@@ -185,12 +156,12 @@ class EmployeeAdmin(admin.ModelAdmin):
 
     def response_add(self, request, obj, post_url_continue=None):
         password = getattr(obj, "_generated_password", None)
-        if password and settings.DEBUG:
+        if password:
             self.message_user(
                 request,
                 (
                     f"Temporary password for {obj.email}: {password} "
-                    "This is shown once because email uses the development console backend."
+                    "This is shown once. It has also been emailed to the employee."
                 ),
                 messages.WARNING,
             )

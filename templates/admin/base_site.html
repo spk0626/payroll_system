@@ -3,12 +3,16 @@
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=7">{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=8">{% endblock %}
 
 {% block branding %}
 <div id="site-name" class="admin-brand">
   <a href="{% url 'admin:index' %}">
-    <span class="admin-brand-mark">SA</span>
+    {% if COMPANY_LOGO_URL %}
+      <img class="admin-brand-logo" src="{{ COMPANY_LOGO_URL }}" alt="{{ site_header }} logo">
+    {% else %}
+      <span class="admin-brand-mark">SA</span>
+    {% endif %}
     <span>
       <span class="admin-brand-title">{{ site_header|default:_('Django administration') }}</span>
       <span class="admin-brand-subtitle">Management portal</span>

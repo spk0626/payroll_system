@@ -19,6 +19,7 @@ Note on rate limiting:
 
 import time
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import Client, TestCase, override_settings, RequestFactory
 from django.urls import reverse
@@ -296,4 +297,29 @@ class TestSessionIdleTimeout(TestCase):
         resp = self.client.get(reverse("accounts:login"), follow=False)
         self.assertEqual(resp.status_code, 302)
         self.assertNotIn(reverse("accounts:login"), resp.get("Location", ""))
+
+
+class TestAdminAccountAdmin(TestCase):
+    def test_admin_account_hides_password_hash_help_text(self):
+        admin = User.objects.create_superuser(
+            "owner@test.com", "owner@test.com", "Admin!Pass123"
+        )
+        staff = User.objects.create_user(
+            username="staff@test.com",
+            email="staff@test.com",
+            password="Staff!Pass123",
+            is_staff=True,
+        )
+        self.client.login(username=admin.username, password="Admin!Pass123")
+
+        resp = self.client.get(
+            f"/{settings.ADMIN_URL}accounts/adminaccount/{staff.pk}/change/"
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(
+            resp,
+            "Password is protected. Use reset password to send the user a new password.",
+        )
+        self.assertNotContains(resp, "algorithm:")
 

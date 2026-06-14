@@ -1,17 +1,19 @@
 """
-Payroll admin - PaySheet, UploadBatch, EmailLog, CategoryParserConfig.
+Payroll admin - PaySheet, UploadBatch, EmailLog.
 
 This file owns the admin-side payroll interface:
-- CategoryParserConfig: set up once per category, editable inline
 - UploadBatch: read-only audit log with warning display and email send action
 - PaySheet: inspectable and manually editable for corrections
 - EmailLog: full send history with retry action
 """
 
 import logging
+import csv
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.contrib import admin, messages
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
@@ -20,7 +22,7 @@ from django.utils.html import format_html, format_html_join
 from core.constants import MONTHS, BatchStatus, EmailStatus
 from core.validators import validate_excel_file
 from employees.models import EmployeeCategory
-from .models import CategoryParserConfig, EmailLog, PaySheet, UploadBatch
+from .models import EmailLog, PaySheet, UploadBatch
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ class SalaryUploadForm(forms.Form):
     month = forms.ChoiceField(choices=MONTHS)
     year = forms.IntegerField(min_value=2000, max_value=2100)
     salary_file = forms.FileField(
-        help_text="Upload a .xlsx file. Column A contains labels; employee numbers are read from the configured ID row."
+        help_text="Upload a .xlsx file. Row 1 must contain employee numbers from column B onward. Column A contains payroll labels."
     )
 
     def clean_salary_file(self):
@@ -41,61 +43,90 @@ class SalaryUploadForm(forms.Form):
         validate_excel_file(salary_file)
         return salary_file
 
-    def clean_category(self):
-        category = self.cleaned_data["category"]
-        if not hasattr(category, "parser_config"):
-            raise forms.ValidationError(
-                "This category does not have an Excel parser configuration. "
-                "Add one from the employee category page before uploading."
+
+class BreakdownTableWidget(forms.Widget):
+    template_name = None
+
+    def render(self, name, value, attrs=None, renderer=None):
+        value = value or {}
+        if not isinstance(value, dict):
+            value = {}
+        rows = []
+        for label, amount in value.items():
+            rows.append(
+                format_html(
+                    '<tr><td><input type="text" name="breakdown_label" value="{}"></td>'
+                    '<td><input type="text" name="breakdown_amount" value="{}"></td></tr>',
+                    label,
+                    amount,
+                )
             )
-        return category
+        rows.append(
+            format_html(
+                '<tr><td><input type="text" name="breakdown_label" value="" '
+                'placeholder="New row label"></td>'
+                '<td><input type="text" name="breakdown_amount" value="" '
+                'placeholder="0.00"></td></tr>'
+            )
+        )
+        return format_html(
+            '<table class="breakdown-editor"><thead><tr><th>Description</th>'
+            '<th>Amount</th></tr></thead><tbody>{}</tbody></table>'
+            '<p class="help">Edit existing rows or use the blank row to add one. '
+            'Leave a label blank to skip that row.</p>',
+            format_html_join("", "{}", ((row,) for row in rows)),
+        )
+
+    def value_from_datadict(self, data, files, name):
+        labels = data.getlist("breakdown_label")
+        amounts = data.getlist("breakdown_amount")
+        breakdown = {}
+        for label, amount in zip(labels, amounts):
+            label = label.strip()
+            amount = amount.strip()
+            if not label:
+                continue
+            breakdown[label] = amount or "0"
+        return breakdown
 
 
-@admin.register(CategoryParserConfig)
-class CategoryParserConfigAdmin(admin.ModelAdmin):
-    """
-    Parser configuration for Excel salary sheets.
+class PaySheetAdminForm(forms.ModelForm):
+    breakdown_editor = forms.Field(
+        label="Salary rows",
+        required=False,
+        widget=BreakdownTableWidget,
+    )
 
-    Set once per category. Controls which row contains employee numbers
-    and which rows are informational, not salary components.
-    """
+    class Meta:
+        model = PaySheet
+        fields = "__all__"
 
-    list_display = [
-        "category",
-        "emp_id_row_label",
-        "fixed_labels_preview",
-        "updated_at",
-    ]
-    search_fields = ["category__name", "emp_id_row_label"]
-    ordering = ["category__name"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["breakdown_editor"].initial = self.instance.breakdown
 
-    fieldsets = [
-        (
-            None,
-            {
-                "fields": ["category", "emp_id_row_label", "fixed_info_row_labels", "notes"],
-                "description": (
-                    "<strong>Employee ID row label</strong>: the exact text in column A "
-                    "that identifies the row containing employee numbers. "
-                    "Case-insensitive. Example: <code>Employee</code>, <code>Staff ID</code>.<br><br>"
-                    "<strong>Fixed info row labels</strong>: JSON list of rows to skip - "
-                    "informational rows that are NOT salary components. "
-                    'Example: <code>["Employee Name", "Designation", "Department"]</code><br><br>'
-                    "Everything else in column A will be treated as a salary component."
-                ),
-            },
-        ),
-    ]
+    def clean_breakdown_editor(self):
+        breakdown = self.cleaned_data["breakdown_editor"]
+        cleaned = {}
+        total = Decimal("0")
+        for label, amount in breakdown.items():
+            try:
+                amount_dec = Decimal(str(amount).replace(",", ""))
+            except InvalidOperation:
+                raise forms.ValidationError(f"'{label}' amount must be a number.")
+            cleaned[label] = str(amount_dec)
+            total += amount_dec
+        self.cleaned_data["_gross_total"] = total
+        return cleaned
 
-    @admin.display(description="Fixed info rows")
-    def fixed_labels_preview(self, obj):
-        labels = obj.fixed_info_row_labels or []
-        if not labels:
-            return format_html('<span style="color:#aaa;">None configured</span>')
-        preview = ", ".join(str(label) for label in labels[:4])
-        if len(labels) > 4:
-            preview += f" (+{len(labels) - 4} more)"
-        return preview
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.breakdown = self.cleaned_data["breakdown_editor"]
+        obj.gross_total = self.cleaned_data["_gross_total"]
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
 
 
 @admin.register(UploadBatch)
@@ -183,6 +214,11 @@ class UploadBatchAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.upload_salary_sheet),
                 name="payroll_uploadbatch_upload",
             ),
+            path(
+                "<int:batch_id>/download-csv/",
+                self.admin_site.admin_view(self.download_csv),
+                name="payroll_uploadbatch_download_csv",
+            ),
         ]
         return custom_urls + urls
 
@@ -190,8 +226,7 @@ class UploadBatchAdmin(admin.ModelAdmin):
         """
         Upload, parse, and commit one monthly salary sheet from the admin.
 
-        CategoryParserConfig remains the source of truth for how each category's
-        Excel file is interpreted.
+        Employee numbers are read from row 1; column A labels become payroll rows.
         """
         if request.method == "POST":
             form = SalaryUploadForm(request.POST, request.FILES)
@@ -244,7 +279,24 @@ class UploadBatchAdmin(admin.ModelAdmin):
                     ),
                     messages.SUCCESS if not diff.warnings else messages.WARNING,
                 )
-                return redirect("admin:payroll_uploadbatch_change", batch.pk)
+                paysheets = (
+                    PaySheet.objects
+                    .filter(upload_batch=batch)
+                    .select_related("employee", "category_snapshot")
+                    .order_by("employee__employee_number")
+                )
+                return render(
+                    request,
+                    "admin/payroll/uploadbatch/result.html",
+                    {
+                        **self.admin_site.each_context(request),
+                        "opts": self.model._meta,
+                        "title": "Salary upload results",
+                        "batch": batch,
+                        "paysheets": paysheets,
+                        "warnings": diff.warnings,
+                    },
+                )
         else:
             form = SalaryUploadForm()
 
@@ -255,6 +307,44 @@ class UploadBatchAdmin(admin.ModelAdmin):
             "form": form,
         }
         return render(request, "admin/payroll/uploadbatch/upload.html", context)
+
+    def download_csv(self, request, batch_id):
+        batch = UploadBatch.objects.get(pk=batch_id)
+        paysheets = (
+            PaySheet.objects
+            .filter(upload_batch=batch)
+            .select_related("employee", "category_snapshot")
+            .order_by("employee__employee_number")
+        )
+        labels = []
+        for paysheet in paysheets:
+            for label in paysheet.breakdown.keys():
+                if label not in labels:
+                    labels.append(label)
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="paysheets-{batch.year}-{batch.month:02d}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow([
+            "Employee number",
+            "Employee name",
+            "Month",
+            "Year",
+            *labels,
+            "Gross total",
+        ])
+        for paysheet in paysheets:
+            writer.writerow([
+                paysheet.employee.employee_number,
+                paysheet.employee.full_name,
+                paysheet.get_month_display_name(),
+                paysheet.year,
+                *[paysheet.breakdown.get(label, "") for label in labels],
+                paysheet.gross_total,
+            ])
+        return response
 
     @admin.action(description="Send payslip notification emails for selected batches")
     def send_payslip_emails(self, request, queryset):
@@ -431,12 +521,14 @@ class PaySheetAdmin(admin.ModelAdmin):
         "employee",
         "category_snapshot",
         "upload_batch",
+        "gross_total",
         "created_at",
         "updated_at",
     ]
     ordering = ["-year", "-month", "employee__full_name"]
     list_select_related = ["employee", "category_snapshot"]
     list_per_page = 50
+    form = PaySheetAdminForm
 
     fieldsets = [
         (
@@ -449,13 +541,10 @@ class PaySheetAdmin(admin.ModelAdmin):
         (
             "Salary data",
             {
-                "fields": ["month", "year", "breakdown", "gross_total"],
+                "fields": ["month", "year", "breakdown_editor", "gross_total"],
                 "description": (
-                    "<strong>Edit carefully.</strong> The <code>breakdown</code> "
-                    "field is raw JSON. Format: "
-                    '<code>{"Component Name": "50000.00", ...}</code>. '
-                    "Changes take effect immediately in the employee portal. "
-                    "Prefer re-uploading a corrected Excel file where possible."
+                    "Edit payroll rows carefully. Changes take effect immediately "
+                    "in the employee portal."
                 ),
             },
         ),

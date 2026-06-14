@@ -24,7 +24,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from employees.models import Employee
-from payroll.models import CategoryParserConfig, PaySheet, UploadBatch
+from payroll.models import PaySheet, UploadBatch
 from payroll.services.excel_parser import ParseResult, parse_salary_sheet
 from core.constants import BatchStatus
 
@@ -114,17 +114,6 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
     """
     result = DiffResult(batch_id=batch.pk)
 
-    # Load parser config for this category
-    try:
-        config = category.parser_config
-    except CategoryParserConfig.DoesNotExist:
-        result.errors.append(
-            f"No parser configuration found for category '{category.name}'. "
-            f"Please set up the parser configuration before uploading."
-        )
-        _mark_batch_failed(batch, result)
-        return result
-
     # Get all known employee numbers for this category (used by parser for quick lookup)
     known_numbers = set(
         Employee.objects.filter(category=category, is_active=True)
@@ -134,8 +123,6 @@ def build_diff(abs_path: str, category, month: int, year: int, batch: UploadBatc
     # Parse the file
     parse_result: ParseResult = parse_salary_sheet(
         file_path=abs_path,
-        emp_id_row_label=config.emp_id_row_label,
-        fixed_info_row_labels=config.fixed_info_row_labels or [],
         known_employee_numbers=known_numbers,
     )
 

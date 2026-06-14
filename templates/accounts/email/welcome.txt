@@ -9,6 +9,9 @@ Your payslip portal account is ready.
   Temp password: {{ password }}
 
 You will be asked to set a new password the first time you sign in.
+If the temporary password is lost, use this link to reset it:
+{{ reset_url }}
+
 Please keep this email confidential — it contains your account credentials.
 
 If you did not expect this email, contact HR immediately.

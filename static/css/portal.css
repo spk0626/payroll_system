@@ -6,8 +6,8 @@
   --text: #17212f;
   --muted: #647184;
   --line: #d8e0e8;
-  --brand: #005f73;
-  --brand-strong: #004a5a;
+  --brand: #0243B0;
+  --brand-strong: #01358f;
   --accent: #c99700;
   --danger-bg: #fff1ed;
   --danger-text: #9b2c13;
@@ -25,8 +25,8 @@ body {
   color: var(--text);
   background:
     radial-gradient(circle at 14% 16%, rgba(201, 151, 0, 0.18), transparent 360px),
-    radial-gradient(circle at 86% 78%, rgba(0, 95, 115, 0.13), transparent 420px),
-    linear-gradient(135deg, rgba(0, 95, 115, 0.18), rgba(238, 242, 245, 0.2) 520px),
+    radial-gradient(circle at 86% 78%, rgba(2, 67, 176, 0.13), transparent 420px),
+    linear-gradient(135deg, rgba(2, 67, 176, 0.18), rgba(238, 242, 245, 0.2) 520px),
     var(--bg);
 }
 
@@ -68,8 +68,8 @@ a {
   color: #ffffff;
   border-radius: 0 42px 42px 0;
   background:
-    linear-gradient(145deg, rgba(0, 74, 90, 0.98), rgba(0, 95, 115, 0.92)),
-    linear-gradient(45deg, #004a5a, #0b7789);
+    linear-gradient(145deg, rgba(1, 53, 143, 0.98), rgba(2, 67, 176, 0.92)),
+    linear-gradient(45deg, #01358f, #0243B0);
   box-shadow: var(--shadow);
 }
 
@@ -85,11 +85,18 @@ a {
   width: 50px;
   height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 16px;
+  border-radius: 0;
   font-size: 20px;
   font-weight: 850;
   letter-spacing: 0;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.brand-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  background: #ffffff;
 }
 
 .brand-text {
@@ -212,7 +219,7 @@ input {
   width: 100%;
   min-height: 50px;
   border: 1px solid #b8c5d1;
-  border-radius: 14px;
+  border-radius: 0;
   padding: 12px 14px;
   color: var(--text);
   background: #ffffff;
@@ -221,7 +228,7 @@ input {
 }
 
 input:focus {
-  outline: 3px solid rgba(0, 95, 115, 0.18);
+  outline: 3px solid rgba(2, 67, 176, 0.18);
   border-color: var(--brand);
 }
 
@@ -240,7 +247,7 @@ input:focus {
   min-width: 64px;
   min-height: 36px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--brand);
   background: #e7f2f4;
   font: inherit;
@@ -255,7 +262,7 @@ input:focus {
 }
 
 .password-toggle:focus {
-  outline: 3px solid rgba(0, 95, 115, 0.18);
+  outline: 3px solid rgba(2, 67, 176, 0.18);
 }
 
 .checkbox-label {
@@ -317,7 +324,7 @@ input:focus {
   margin: 10px 0 0;
   padding: 10px 12px;
   border: 1px solid #f2c0b5;
-  border-radius: 6px;
+  border-radius: 0;
   color: var(--danger-text);
   background: var(--danger-bg);
   list-style: none;
@@ -569,7 +576,7 @@ input:focus {
   align-items: center;
   min-height: 24px;
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--brand-strong);
   background: #edf8f9;
   font-size: 12px;

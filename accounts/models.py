@@ -1,3 +1,8 @@
-from django.db import models
+from django.contrib.auth.models import User
 
-# Create your models here.
+
+class AdminAccount(User):
+    class Meta:
+        proxy = True
+        verbose_name = "Admin account"
+        verbose_name_plural = "Admin accounts"
