@@ -39,6 +39,13 @@ CSRF_COOKIE_SECURE = False
 
 # django-debug-toolbar (install separately: pip install django-debug-toolbar)
 try:
+    def _show_debug_toolbar(request):
+        return request.path_info.startswith(f"/{ADMIN_URL}") is False  # noqa: F405
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TOOLBAR_CALLBACK": _show_debug_toolbar,
+    }
+
     import debug_toolbar  # noqa: F401
     INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405

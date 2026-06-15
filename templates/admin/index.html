@@ -1,0 +1,685 @@
+{% load i18n log static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="NONE,NOARCHIVE">
+  <title>Administration | {{ site_title|default:"Syntax Asia Payroll" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #F5F6FA;
+      --surface: #FFFFFF;
+      --surface2: #F0F2F8;
+      --navy: #0D1B3E;
+      --blue: #1A56C4;
+      --blue-mid: #3B72E8;
+      --blue-light: #E8EFFE;
+      --text-primary: #0D1B3E;
+      --text-secondary: #5A6480;
+      --text-muted: #9BA3BB;
+      --border: rgba(13, 27, 62, 0.10);
+      --border-strong: rgba(13, 27, 62, 0.18);
+      --green: #137A42;
+      --green-bg: #DDF4E8;
+      --amber: #B7791F;
+      --amber-bg: #FFF2CC;
+      --red: #B42318;
+      --red-bg: #FFE4E2;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0B1120;
+      --surface: #131D35;
+      --surface2: #1A2644;
+      --blue: #5B8EF5;
+      --blue-mid: #5B8EF5;
+      --blue-light: #1A2644;
+      --text-primary: #E8EBF5;
+      --text-secondary: #8B96BA;
+      --text-muted: #5A6480;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --green-bg: rgba(19, 122, 66, 0.20);
+      --amber-bg: rgba(183, 121, 31, 0.20);
+      --red-bg: rgba(180, 35, 24, 0.20);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .admin-shell {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text-primary);
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 20;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 28px;
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border-strong);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      grid-template-columns: repeat(2, 7px);
+      grid-template-rows: repeat(2, 7px);
+      place-content: center;
+      gap: 4px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .brand-icon span {
+      width: 7px;
+      height: 7px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .brand-title {
+      display: block;
+      font-size: 15px;
+      line-height: 1.05;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      line-height: 1.1;
+      color: var(--text-secondary);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .user-pill,
+    .nav-button,
+    .theme-button,
+    .logout-button {
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 13px;
+      background: var(--surface);
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .user-pill {
+      background: var(--surface2);
+      color: var(--text-secondary);
+    }
+
+    .nav-button:hover,
+    .theme-button:hover {
+      border-color: var(--border-strong);
+      color: var(--blue);
+    }
+
+    .theme-button {
+      width: 34px;
+      padding: 0;
+    }
+
+    .theme-button .ti-sun {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-button .ti-moon {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-button .ti-sun {
+      display: inline-block;
+    }
+
+    .logout-button {
+      border-color: rgba(180, 35, 24, 0.28);
+      color: var(--red);
+      min-width: 78px;
+    }
+
+    .page-grid {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      padding-top: 56px;
+    }
+
+    .main-panel {
+      padding: 32px 28px;
+    }
+
+    .main-inner {
+      max-width: 760px;
+    }
+
+    .sidebar {
+      min-height: calc(100vh - 56px);
+      padding: 28px 20px;
+      background: var(--surface);
+      border-left: 0.5px solid var(--border-strong);
+    }
+
+    .page-title {
+      margin-bottom: 34px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .page-title p {
+      margin: 8px 0 0;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .section:first-of-type {
+      margin-top: 0;
+    }
+
+    .section-label,
+    .sidebar-title {
+      margin: 0 0 9px;
+      color: var(--text-muted);
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .module-card,
+    .stat-card {
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .module-row {
+      min-height: 70px;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 13px;
+      padding: 18px;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .module-row:last-child {
+      border-bottom: 0;
+    }
+
+    .module-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      color: var(--blue);
+      background: var(--blue-light);
+      font-size: 16px;
+    }
+
+    .module-name {
+      display: block;
+      color: var(--text-primary);
+      font-size: 13.5px;
+      line-height: 1.2;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .module-description {
+      margin: 4px 0 0;
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      line-height: 1.25;
+    }
+
+    .module-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-button {
+      min-width: 58px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0.5px solid var(--border);
+      border-radius: 6px;
+      padding: 0 13px;
+      color: var(--text-secondary);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .action-button--primary {
+      color: #ffffff;
+      border-color: var(--blue);
+      background: var(--blue);
+    }
+
+    .action-button--primary:hover {
+      background: var(--blue-mid);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      padding: 14px 12px;
+      background: var(--surface2);
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 6px;
+      color: var(--text-primary);
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      height: 18px;
+      margin-top: 8px;
+      border-radius: 999px;
+      padding: 0 8px;
+      color: var(--green);
+      background: var(--green-bg);
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .activity-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .activity-item {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 9px;
+      padding: 13px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .activity-item:last-child {
+      border-bottom: 0;
+    }
+
+    .activity-dot {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 10px;
+    }
+
+    .activity-dot--edit {
+      color: var(--amber);
+      background: var(--amber-bg);
+    }
+
+    .activity-dot--add {
+      color: var(--green);
+      background: var(--green-bg);
+    }
+
+    .activity-dot--delete {
+      color: var(--red);
+      background: var(--red-bg);
+    }
+
+    .activity-name {
+      display: block;
+      color: var(--blue);
+      font-size: 12.5px;
+      line-height: 1.25;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .activity-subtitle {
+      display: block;
+      margin-top: 3px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        height: auto;
+        min-height: 56px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 12px 16px;
+      }
+
+      .topbar-actions {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .page-grid {
+        grid-template-columns: 1fr;
+        padding-top: 116px;
+      }
+
+      .main-panel {
+        padding: 24px 16px;
+      }
+
+      .sidebar {
+        min-height: auto;
+        border-left: 0;
+        border-top: 0.5px solid var(--border-strong);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .module-row {
+        grid-template-columns: 32px minmax(0, 1fr);
+      }
+
+      .module-actions {
+        grid-column: 2;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-shell" data-theme="light" id="admin-shell">
+    <header class="topbar">
+      <a class="brand" href="{% url 'admin:index' %}" aria-label="Syntax Asia administration home">
+        <span class="brand-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>
+          <span class="brand-title">Syntax Asia</span>
+          <span class="brand-subtitle">Payroll Administration</span>
+        </span>
+      </a>
+      <nav class="topbar-actions" aria-label="Admin actions">
+        <span class="user-pill">{{ request.user.username }}</span>
+        <a class="nav-button" href="/">View site</a>
+        <a class="nav-button" href="{% url 'admin:password_change' %}">Change password</a>
+        <button class="theme-button" type="button" id="theme-toggle" aria-label="Toggle dark mode">
+          <i class="ti ti-moon" aria-hidden="true"></i>
+          <i class="ti ti-sun" aria-hidden="true"></i>
+        </button>
+        <a class="logout-button" href="{% url 'admin:logout' %}">Log out</a>
+      </nav>
+    </header>
+
+    <div class="page-grid">
+      <main class="main-panel">
+        <div class="main-inner">
+          <div class="page-title">
+            <h1>Administration</h1>
+            <p>Manage system settings, accounts, and payroll data</p>
+          </div>
+
+          <section class="section">
+            <h2 class="section-label">Accounts</h2>
+            <div class="module-card">
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-shield-lock"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:accounts_adminaccount_changelist' %}">Admin accounts</a>
+                  <p class="module-description">Manage administrator access and credentials</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="{% url 'admin:accounts_adminaccount_add' %}">Add</a>
+                  <a class="action-button" href="{% url 'admin:accounts_adminaccount_changelist' %}">Edit</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-label">Authentication &amp; Authorization</h2>
+            <div class="module-card">
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-users-group"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:auth_group_changelist' %}">Groups</a>
+                  <p class="module-description">Assign roles and access permissions to user groups</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="{% url 'admin:auth_group_add' %}">Add</a>
+                  <a class="action-button" href="{% url 'admin:auth_group_changelist' %}">Edit</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-label">Core</h2>
+            <div class="module-card">
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-building-skyscraper"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:core_companysetting_changelist' %}">Company settings</a>
+                  <p class="module-description">Configure company profile and payroll defaults</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button" href="{% url 'admin:core_companysetting_changelist' %}">Edit</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-label">Employees</h2>
+            <div class="module-card">
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-id-badge-2"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:employees_employee_changelist' %}">Employees</a>
+                  <p class="module-description">Add and manage employee records and profiles</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="{% url 'admin:employees_employee_add' %}">Add</a>
+                  <a class="action-button" href="{% url 'admin:employees_employee_changelist' %}">Edit</a>
+                </div>
+              </div>
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-file-text"></i></span>
+                <div>
+                  <span class="module-name">Contracts</span>
+                  <p class="module-description">Manage employee contracts and agreements</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="#">Add</a>
+                  <a class="action-button" href="#">Edit</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-label">Payroll</h2>
+            <div class="module-card">
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-upload"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:payroll_uploadbatch_changelist' %}">Upload batches</a>
+                  <p class="module-description">Import and process payroll batch files</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="{% url 'admin:payroll_uploadbatch_upload' %}">Add</a>
+                  <a class="action-button" href="{% url 'admin:payroll_uploadbatch_changelist' %}">Edit</a>
+                </div>
+              </div>
+              <div class="module-row">
+                <span class="module-icon"><i class="ti ti-receipt"></i></span>
+                <div>
+                  <a class="module-name" href="{% url 'admin:payroll_paysheet_changelist' %}">Payslips</a>
+                  <p class="module-description">View and generate employee payslips</p>
+                </div>
+                <div class="module-actions">
+                  <a class="action-button action-button--primary" href="{% url 'admin:payroll_paysheet_add' %}">Add</a>
+                  <a class="action-button" href="{% url 'admin:payroll_paysheet_changelist' %}">Edit</a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <aside class="sidebar">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Employees</span>
+            <span class="stat-value">48</span>
+            <span class="stat-chip">Active</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Last batch</span>
+            <span class="stat-value">Feb</span>
+            <span class="stat-chip">Done</span>
+          </div>
+        </div>
+
+        <h2 class="sidebar-title">Recent activity</h2>
+        {% get_admin_log 8 as recent_actions for_user user %}
+        <ul class="activity-list">
+          {% for entry in recent_actions %}
+            <li class="activity-item">
+              {% if entry.is_addition %}
+                <span class="activity-dot activity-dot--add"><i class="ti ti-plus"></i></span>
+              {% elif entry.is_deletion %}
+                <span class="activity-dot activity-dot--delete"><i class="ti ti-trash"></i></span>
+              {% else %}
+                <span class="activity-dot activity-dot--edit"><i class="ti ti-pencil"></i></span>
+              {% endif %}
+              <span>
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                  <span class="activity-name">{{ entry.object_repr }}</span>
+                {% else %}
+                  <a class="activity-name" href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <span class="activity-subtitle">
+                  {% if entry.content_type %}{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}{% else %}Record{% endif %}
+                  &middot;
+                  {% if entry.is_addition %}added{% elif entry.is_deletion %}deleted{% else %}edited{% endif %}
+                </span>
+              </span>
+            </li>
+          {% empty %}
+            <li class="activity-item">
+              <span class="activity-dot activity-dot--edit"><i class="ti ti-clock"></i></span>
+              <span>
+                <span class="activity-name">No recent activity</span>
+                <span class="activity-subtitle">Actions will appear here</span>
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.getElementById("admin-shell");
+      var button = document.getElementById("theme-toggle");
+      var saved = localStorage.getItem("syntax-admin-index-theme") || "light";
+      root.dataset.theme = saved;
+      button.addEventListener("click", function () {
+        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+        localStorage.setItem("syntax-admin-index-theme", root.dataset.theme);
+      });
+    })();
+  </script>
+</body>
+</html>

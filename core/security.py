@@ -30,9 +30,9 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         csp_directives = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'",
-            "style-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
             "img-src 'self' data:",
-            "font-src 'self'",
+            "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
             "connect-src 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
