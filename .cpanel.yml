@@ -3,3 +3,8 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/syntumfz/pay.syntaxasia.digital/
     - /usr/bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.env' --exclude='.env.production' --exclude='.htaccess' --exclude='.well-known/' --exclude='.venv' --exclude='tmp/' --exclude='db.sqlite3' --exclude='media/' --exclude='salary_uploads/' --exclude='logs/' ./ $DEPLOYPATH
+    - /bin/mkdir -p $DEPLOYPATH/tmp $DEPLOYPATH/logs
+    - /bin/chmod 755 $DEPLOYPATH
+    - /usr/bin/find $DEPLOYPATH -type d -exec /bin/chmod 755 {} \;
+    - /usr/bin/find $DEPLOYPATH -type f -exec /bin/chmod 644 {} \;
+    - /usr/bin/touch $DEPLOYPATH/tmp/restart.txt
