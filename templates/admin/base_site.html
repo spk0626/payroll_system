@@ -5,14 +5,90 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=20">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script>
+  (function () {
+    var saved = localStorage.getItem("syntax-admin-theme") || "light";
+    document.documentElement.setAttribute("data-theme", saved);
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var button = document.querySelector("[data-theme-toggle]");
+      if (button) {
+        button.addEventListener("click", function () {
+          var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("syntax-admin-theme", next);
+        });
+      }
+
+      document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        if (input.closest(".admin-password-wrap") || input.closest(".password-field")) {
+          return;
+        }
+
+        var wrapper = document.createElement("span");
+        wrapper.className = "admin-password-wrap";
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        var toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "admin-password-toggle";
+        toggle.textContent = "Show";
+        toggle.setAttribute("aria-label", "Show password");
+        wrapper.appendChild(toggle);
+
+        toggle.addEventListener("click", function () {
+          var visible = input.type === "text";
+          input.type = visible ? "password" : "text";
+          toggle.textContent = visible ? "Show" : "Hide";
+          toggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+        });
+      });
+    });
+  })();
+</script>
 {% endblock %}
 
 {% block branding %}
-<h1 id="site-name">
-  <a href="{% url 'admin:index' %}">
-    {{ site_header|default:_('Django administration') }}
+<h1 id="site-name" class="admin-brand">
+  <a class="admin-brand__link" href="{% url 'admin:index' %}">
+    <span class="admin-brand__logo-frame" aria-hidden="true">
+      <img class="admin-brand__logo" src="{% static 'img/syntax-asia-logo.svg' %}" alt="">
+    </span>
+    <span>
+      <span class="admin-brand__title">Syntax Asia</span>
+      <span class="admin-brand__subtitle">Payroll Administration</span>
+    </span>
   </a>
 </h1>
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools" class="admin-actions">
+  <span class="admin-user-pill">{{ request.user.username|default:user.username }}</span>
+  {% if site_url %}
+    <a class="admin-nav-button" href="{{ site_url }}">{% translate 'View site' %}</a>
+  {% endif %}
+  {% if user.has_usable_password %}
+    <a class="admin-nav-button" href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a>
+  {% endif %}
+  <button class="admin-theme-button" type="button" data-theme-toggle aria-label="Toggle dark mode">
+    <i class="ti ti-moon" aria-hidden="true"></i>
+    <i class="ti ti-sun" aria-hidden="true"></i>
+  </button>
+  <a class="admin-logout-button" href="{% url 'admin:logout' %}">{% translate 'Log out' %}</a>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

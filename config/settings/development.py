@@ -8,7 +8,8 @@ from .base import *  # noqa: F401, F403
 
 DEBUG = True
 
-DATABASE_URL = config("DATABASE_URL", default="")  # noqa: F405
+USE_DATABASE_URL = config("USE_DATABASE_URL", cast=bool, default=False)  # noqa: F405
+DATABASE_URL = config("DATABASE_URL", default="") if USE_DATABASE_URL else ""  # noqa: F405
 if DATABASE_URL:
     import dj_database_url
 

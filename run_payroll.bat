@@ -25,4 +25,5 @@ if not errorlevel 1 (
 )
 
 echo Starting payroll system at http://127.0.0.1:8004/
+set DATABASE_URL=
 ".venv\Scripts\python.exe" manage.py runserver 127.0.0.1:8004

@@ -12,38 +12,38 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
     :root {
-      --bg: #F5F6FA;
+      --bg: #F5F7FB;
       --surface: #FFFFFF;
-      --surface2: #F0F2F8;
-      --navy: #0D1B3E;
-      --blue: #1A56C4;
-      --blue-mid: #3B72E8;
-      --blue-light: #E8EFFE;
-      --text-primary: #0D1B3E;
-      --text-secondary: #5A6480;
-      --text-muted: #9BA3BB;
-      --border: rgba(13, 27, 62, 0.10);
-      --border-strong: rgba(13, 27, 62, 0.18);
-      --green: #137A42;
-      --green-bg: #DDF4E8;
+      --surface2: #EEF3FC;
+      --navy: #102044;
+      --blue: #0243B0;
+      --blue-mid: #0B58D4;
+      --blue-light: #EAF1FF;
+      --text-primary: #111827;
+      --text-secondary: #4B587C;
+      --text-muted: #73809D;
+      --border: rgba(17, 24, 39, 0.11);
+      --border-strong: rgba(17, 24, 39, 0.20);
+      --green: #0F7A43;
+      --green-bg: #E3F6EC;
       --amber: #B7791F;
       --amber-bg: #FFF2CC;
       --red: #B42318;
-      --red-bg: #FFE4E2;
+      --red-bg: #FDE8E7;
     }
 
     [data-theme="dark"] {
-      --bg: #0B1120;
-      --surface: #131D35;
-      --surface2: #1A2644;
-      --blue: #5B8EF5;
-      --blue-mid: #5B8EF5;
-      --blue-light: #1A2644;
-      --text-primary: #E8EBF5;
-      --text-secondary: #8B96BA;
-      --text-muted: #5A6480;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.14);
+      --bg: #0B1222;
+      --surface: #121C32;
+      --surface2: #182744;
+      --blue: #7EA8FF;
+      --blue-mid: #A8C4FF;
+      --blue-light: rgba(126, 168, 255, 0.16);
+      --text-primary: #F4F7FB;
+      --text-secondary: #BAC6DC;
+      --text-muted: #91A0BE;
+      --border: rgba(255, 255, 255, 0.10);
+      --border-strong: rgba(255, 255, 255, 0.20);
       --green-bg: rgba(19, 122, 66, 0.20);
       --amber-bg: rgba(183, 121, 31, 0.20);
       --red-bg: rgba(180, 35, 24, 0.20);
@@ -67,6 +67,7 @@
 
     a {
       color: inherit;
+      text-decoration: none;
     }
 
     .admin-shell {
@@ -87,6 +88,7 @@
       padding: 0 28px;
       background: var(--surface);
       border-bottom: 0.5px solid var(--border-strong);
+      box-shadow: 0 10px 24px rgba(13, 27, 62, 0.05);
     }
 
     .brand {
@@ -94,31 +96,31 @@
       align-items: center;
       gap: 10px;
       min-width: 0;
+      text-decoration: none;
     }
 
-    .brand-icon {
-      width: 32px;
-      height: 32px;
+    .brand-logo-frame {
+      width: 42px;
+      height: 42px;
       display: grid;
-      grid-template-columns: repeat(2, 7px);
-      grid-template-rows: repeat(2, 7px);
-      place-content: center;
-      gap: 4px;
-      border-radius: 8px;
-      background: var(--blue);
-      color: #ffffff;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--surface));
+      border-radius: 11px;
+      background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
     }
 
-    .brand-icon span {
-      width: 7px;
-      height: 7px;
-      border-radius: 2px;
-      background: rgba(255, 255, 255, 0.82);
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      object-fit: cover;
     }
 
     .brand-title {
       display: block;
-      font-size: 15px;
+      font-size: 17px;
       line-height: 1.05;
       font-weight: 600;
       letter-spacing: -0.02em;
@@ -128,7 +130,7 @@
     .brand-subtitle {
       display: block;
       margin-top: 2px;
-      font-size: 11px;
+      font-size: 13px;
       line-height: 1.1;
       color: var(--text-secondary);
     }
@@ -148,14 +150,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 0.5px solid var(--border);
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 0 13px;
       background: var(--surface);
       color: var(--text-secondary);
       font: inherit;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 600;
       text-decoration: none;
       cursor: pointer;
     }
@@ -197,42 +199,43 @@
     .page-grid {
       min-height: 100vh;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
+      grid-template-columns: minmax(0, 1fr) 356px;
       padding-top: 56px;
     }
 
     .main-panel {
-      padding: 32px 28px;
+      padding: 38px 40px;
     }
 
     .main-inner {
-      max-width: 760px;
+      width: min(960px, 100%);
+      margin: 0 auto;
     }
 
     .sidebar {
       min-height: calc(100vh - 56px);
-      padding: 28px 20px;
+      padding: 36px 28px;
       background: var(--surface);
       border-left: 0.5px solid var(--border-strong);
     }
 
     .page-title {
-      margin-bottom: 34px;
+      margin-bottom: 30px;
     }
 
     h1 {
       margin: 0;
       color: var(--text-primary);
-      font-size: 22px;
+      font-size: 25px;
       line-height: 1.15;
       font-weight: 600;
       letter-spacing: -0.02em;
     }
 
     .page-title p {
-      margin: 8px 0 0;
+      margin: 10px 0 0;
       color: var(--text-secondary);
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.4;
     }
 
@@ -260,20 +263,25 @@
       border: 0.5px solid var(--border);
       border-radius: 10px;
       background: var(--surface);
+      box-shadow: 0 14px 34px rgba(13, 27, 62, 0.05);
     }
 
     .module-row {
-      min-height: 70px;
+      min-height: 78px;
       display: grid;
       grid-template-columns: 36px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 13px;
-      padding: 18px;
+      gap: 16px;
+      padding: 20px 22px;
       border-bottom: 0.5px solid var(--border);
     }
 
     .module-row:last-child {
       border-bottom: 0;
+    }
+
+    .module-row:hover {
+      background: color-mix(in srgb, var(--blue) 4%, var(--surface));
     }
 
     .module-icon {
@@ -290,16 +298,21 @@
     .module-name {
       display: block;
       color: var(--text-primary);
-      font-size: 13.5px;
+      font-size: 14px;
       line-height: 1.2;
-      font-weight: 500;
+      font-weight: 600;
       text-decoration: none;
+    }
+
+    .module-name:hover,
+    .activity-name:hover {
+      color: var(--blue);
     }
 
     .module-description {
       margin: 4px 0 0;
       color: var(--text-secondary);
-      font-size: 11.5px;
+      font-size: 12.5px;
       line-height: 1.25;
     }
 
@@ -338,12 +351,12 @@
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 28px;
+      gap: 12px;
+      margin-bottom: 32px;
     }
 
     .stat-card {
-      padding: 14px 12px;
+      padding: 18px 16px;
       background: var(--surface2);
     }
 
@@ -386,8 +399,8 @@
     .activity-item {
       display: grid;
       grid-template-columns: 22px minmax(0, 1fr);
-      gap: 9px;
-      padding: 13px 0;
+      gap: 11px;
+      padding: 15px 0;
       border-bottom: 0.5px solid var(--border);
     }
 
@@ -452,7 +465,7 @@
 
       .page-grid {
         grid-template-columns: 1fr;
-        padding-top: 116px;
+        padding-top: 126px;
       }
 
       .main-panel {
@@ -464,16 +477,45 @@
         border-left: 0;
         border-top: 0.5px solid var(--border-strong);
       }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     @media (max-width: 620px) {
+      .topbar-actions {
+        gap: 6px;
+      }
+
+      .user-pill,
+      .nav-button,
+      .logout-button {
+        flex: 1 1 auto;
+      }
+
+      .main-panel,
+      .sidebar {
+        padding: 20px 14px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
       .module-row {
         grid-template-columns: 32px minmax(0, 1fr);
+        padding: 16px;
       }
 
       .module-actions {
         grid-column: 2;
         justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .action-button {
+        flex: 1 1 92px;
       }
     }
   </style>
@@ -482,7 +524,9 @@
   <div class="admin-shell" data-theme="light" id="admin-shell">
     <header class="topbar">
       <a class="brand" href="{% url 'admin:index' %}" aria-label="Syntax Asia administration home">
-        <span class="brand-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-logo-frame" aria-hidden="true">
+          <img class="brand-logo" src="{% static 'img/syntax-asia-logo.svg' %}" alt="">
+        </span>
         <span>
           <span class="brand-title">Syntax Asia</span>
           <span class="brand-subtitle">Payroll Administration</span>
@@ -673,12 +717,14 @@
     (function () {
       var root = document.getElementById("admin-shell");
       var button = document.getElementById("theme-toggle");
-      var saved = localStorage.getItem("syntax-admin-index-theme") || "light";
+      var saved = localStorage.getItem("syntax-admin-theme") || "light";
       root.dataset.theme = saved;
-      button.addEventListener("click", function () {
-        root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-        localStorage.setItem("syntax-admin-index-theme", root.dataset.theme);
-      });
+      if (button) {
+        button.addEventListener("click", function () {
+          root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
+          localStorage.setItem("syntax-admin-theme", root.dataset.theme);
+        });
+      }
     })();
   </script>
 </body>
