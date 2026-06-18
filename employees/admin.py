@@ -10,6 +10,7 @@ Design goals:
 """
 
 import logging
+from datetime import date
 
 from django import forms
 from django.contrib import admin, messages
@@ -17,6 +18,7 @@ from django.contrib.auth.models import User
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
+from core.admin_mixins import ActionLabelMixin
 from .models import Branch, Employee, EmployeeCategory
 from .signals import _generate_secure_password, sync_user_account
 
@@ -26,7 +28,7 @@ logger = logging.getLogger(__name__)
 # ─── Branch ───────────────────────────────────────────────────────────────────
 
 @admin.register(Branch)
-class BranchAdmin(admin.ModelAdmin):
+class BranchAdmin(ActionLabelMixin, admin.ModelAdmin):
     list_display = ["name", "location", "employee_count", "created_at"]
     search_fields = ["name", "location"]
     ordering = ["name"]
@@ -39,7 +41,7 @@ class BranchAdmin(admin.ModelAdmin):
 # ─── EmployeeCategory (with inline parser config) ─────────────────────────────
 
 @admin.register(EmployeeCategory)
-class EmployeeCategoryAdmin(admin.ModelAdmin):
+class EmployeeCategoryAdmin(ActionLabelMixin, admin.ModelAdmin):
     list_display = [
         "name",
         "employee_count",
@@ -74,21 +76,66 @@ def _assign_to_category_action_factory(category):
         )
 
     assign_action.__name__ = f"assign_to_{category.pk}"
-    assign_action.short_description = f"Assign selected → {category.name}"
+    assign_action.short_description = f"Assign selected to {category.name}"
     return assign_action
 
 
 class EmployeeAdminForm(forms.ModelForm):
+    date_of_joining_year = forms.ChoiceField(label="Joining year")
+    date_of_joining_month = forms.ChoiceField(label="Joining month")
+
     class Meta:
         model = Employee
         fields = "__all__"
         widgets = {
-            "date_of_joining": forms.SelectDateWidget(years=range(1990, 2101)),
+            "date_of_joining": forms.HiddenInput,
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        current_year = date.today().year
+        years = range(current_year, current_year - 16, -1)
+        self.fields["date_of_joining_year"].choices = [(year, year) for year in years]
+        self.fields["date_of_joining_month"].choices = [
+            (1, "January"),
+            (2, "February"),
+            (3, "March"),
+            (4, "April"),
+            (5, "May"),
+            (6, "June"),
+            (7, "July"),
+            (8, "August"),
+            (9, "September"),
+            (10, "October"),
+            (11, "November"),
+            (12, "December"),
+        ]
+        joining_date = self.instance.date_of_joining if self.instance.pk else date.today()
+        self.fields["date_of_joining_year"].initial = joining_date.year
+        self.fields["date_of_joining_month"].initial = joining_date.month
+
+    def clean(self):
+        cleaned_data = super().clean()
+        year = cleaned_data.get("date_of_joining_year")
+        month = cleaned_data.get("date_of_joining_month")
+        if year and month:
+            cleaned_data["date_of_joining"] = date(int(year), int(month), 1)
+        return cleaned_data
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        user_id = self.instance.user_id if self.instance and self.instance.pk else None
+        duplicate_user = User.objects.filter(username=email).exclude(pk=user_id).exists()
+        duplicate_email = User.objects.filter(email=email).exclude(pk=user_id).exists()
+        if duplicate_user or duplicate_email:
+            raise forms.ValidationError(
+                "This email is already used by another login account."
+            )
+        return email
 
 
 @admin.register(Employee)
-class EmployeeAdmin(admin.ModelAdmin):
+class EmployeeAdmin(ActionLabelMixin, admin.ModelAdmin):
     # ── List view ─────────────────────────────────────────────────────────────
     list_display = [
         "employee_number",
@@ -114,7 +161,13 @@ class EmployeeAdmin(admin.ModelAdmin):
         (
             "Personal information",
             {
-                "fields": ["employee_number", "full_name", "email", "date_of_joining"],
+                "fields": [
+                    "employee_number",
+                    "full_name",
+                    "email",
+                    "date_of_joining_year",
+                    "date_of_joining_month",
+                ],
             },
         ),
         (
@@ -133,8 +186,8 @@ class EmployeeAdmin(admin.ModelAdmin):
                 "classes": ["collapse"],
                 "fields": [
                     "bank_name",
-                    "bank_account_name",
                     "bank_account_number",
+                    "bank_account_name",
                     "bank_branch_name",
                 ],
                 "description": "Shown on printed payslips. Expand to view or edit.",
@@ -182,7 +235,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             )
         return actions
 
-    @admin.action(description="🔑 Reset passwords for selected employees")
+    @admin.action(description="Reset passwords for selected employees")
     def reset_passwords(self, request, queryset):
         """Generate a new password, email it, set must_change_password=True."""
         count = 0
@@ -218,7 +271,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
-    @admin.action(description="🔒 Deactivate selected employees")
+    @admin.action(description="Deactivate selected employees")
     def deactivate_employees(self, request, queryset):
         count = sum(1 for emp in queryset if emp.is_active and (emp.deactivate() or True))
         self.message_user(
@@ -227,7 +280,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
-    @admin.action(description="🔓 Re-activate selected employees")
+    @admin.action(description="Re-activate selected employees")
     def activate_employees(self, request, queryset):
         updated = queryset.update(is_active=True)
         user_ids = queryset.values_list("user_id", flat=True)
@@ -249,9 +302,9 @@ class EmployeeAdmin(admin.ModelAdmin):
     @admin.display(description="Login")
     def account_status(self, obj: Employee):
         if not obj.user:
-            return format_html('<span style="color:#e65100;">⚠ No account</span>')
+            return format_html('<span style="color:#b45309;font-size:12px;">No account</span>')
         if obj.must_change_password:
             return format_html(
-                '<span style="color:#f57f17;font-size:12px;">⚠ Temp password</span>'
+                '<span style="color:#b45309;font-size:12px;">Password change required</span>'
             )
-        return format_html('<span style="color:#2e7d32;font-size:12px;">✓ Active</span>')
+        return format_html('<span style="color:#2e7d32;font-size:12px;">Active</span>')

@@ -5,7 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=17">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}?v=18">
   {% block head_extra %}{% endblock %}
 </head>
 <body>
@@ -14,7 +18,9 @@
       <div class="auth-brand">
         <div class="brand-lockup">
           {% if COMPANY_LOGO_URL %}
-            <img class="brand-logo" src="{{ COMPANY_LOGO_URL }}" alt="{{ COMPANY_NAME }} logo">
+            <span class="brand-icon">
+              <img class="brand-logo" src="{{ COMPANY_LOGO_URL }}" alt="{{ COMPANY_NAME }} logo">
+            </span>
           {% else %}
             <div class="brand-mark">SA</div>
           {% endif %}
@@ -22,6 +28,10 @@
             <div class="brand-name">{% block brand_name %}{{ COMPANY_NAME|default:"Syntax Asia" }}{% endblock %}</div>
             <div class="brand-subtitle">{% block brand_subtitle %}{% endblock %}</div>
           </div>
+          <button class="auth-theme-button" type="button" data-theme-toggle aria-label="Toggle dark mode">
+            <i class="ti ti-moon" aria-hidden="true"></i>
+            <i class="ti ti-sun" aria-hidden="true"></i>
+          </button>
         </div>
         <div>
           <h1>{% block hero_title %}{% endblock %}</h1>
@@ -40,6 +50,18 @@
     </section>
   </main>
   <script>
+    (function () {
+      var saved = localStorage.getItem("syntax-employee-theme") || "light";
+      document.documentElement.setAttribute("data-theme", saved);
+      document.querySelectorAll("[data-theme-toggle]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("syntax-employee-theme", next);
+        });
+      });
+    })();
+
     document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
       var field = button.closest(".password-field");
       var input = field ? field.querySelector("input") : null;

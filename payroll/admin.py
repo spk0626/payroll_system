@@ -14,14 +14,15 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 from django.contrib import admin, messages
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 
+from core.admin_mixins import ActionLabelMixin
 from core.constants import MONTHS, BatchStatus, EmailStatus
 from core.validators import validate_excel_file
-from employees.models import EmployeeCategory
+from employees.models import Employee, EmployeeCategory
 from .models import EmailLog, PaySheet, UploadBatch
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,7 @@ logger = logging.getLogger(__name__)
 class SalaryUploadForm(forms.Form):
     category = forms.ModelChoiceField(
         queryset=EmployeeCategory.objects.order_by("name"),
+        empty_label="Select a category...",
         help_text="Only active employees in this category will be matched.",
     )
     month = forms.ChoiceField(choices=MONTHS)
@@ -61,19 +63,21 @@ class BreakdownTableWidget(forms.Widget):
                     amount,
                 )
             )
-        rows.append(
-            format_html(
-                '<tr><td><input type="text" name="breakdown_label" value="" '
-                'placeholder="New row label"></td>'
-                '<td><input type="text" name="breakdown_amount" value="" '
-                'placeholder="0.00"></td></tr>'
+        for _ in range(5):
+            rows.append(
+                format_html(
+                    '<tr class="breakdown-editor__new-row">'
+                    '<td><input type="text" name="breakdown_label" value="" '
+                    'placeholder="Add salary row label"></td>'
+                    '<td><input type="text" name="breakdown_amount" value="" '
+                    'placeholder="0.00"></td></tr>'
+                )
             )
-        )
         return format_html(
             '<table class="breakdown-editor"><thead><tr><th>Description</th>'
             '<th>Amount</th></tr></thead><tbody>{}</tbody></table>'
-            '<p class="help">Edit existing rows or use the blank row to add one. '
-            'Leave a label blank to skip that row.</p>',
+            '<p class="help">Edit existing rows or use the blank rows at the end '
+            'to add new salary rows. Leave unused labels blank.</p>',
             format_html_join("", "{}", ((row,) for row in rows)),
         )
 
@@ -103,7 +107,7 @@ class PaySheetAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["breakdown_editor"].initial = self.instance.breakdown
+        self.fields["breakdown_editor"].initial = self.instance.breakdown or {}
 
     def clean_breakdown_editor(self):
         breakdown = self.cleaned_data["breakdown_editor"]
@@ -130,7 +134,7 @@ class PaySheetAdminForm(forms.ModelForm):
 
 
 @admin.register(UploadBatch)
-class UploadBatchAdmin(admin.ModelAdmin):
+class UploadBatchAdmin(ActionLabelMixin, admin.ModelAdmin):
     """
     Audit log for every Excel salary upload.
 
@@ -219,8 +223,40 @@ class UploadBatchAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.download_csv),
                 name="payroll_uploadbatch_download_csv",
             ),
+            path(
+                "<int:batch_id>/download-excel/",
+                self.admin_site.admin_view(self.download_excel),
+                name="payroll_uploadbatch_download_excel",
+            ),
+            path(
+                "<int:batch_id>/commit-preview/",
+                self.admin_site.admin_view(self.commit_preview),
+                name="payroll_uploadbatch_commit_preview",
+            ),
         ]
         return custom_urls + urls
+
+    def _preview_rows(self, diff):
+        labels = []
+        rows = []
+        entries = [*diff.to_create, *diff.to_update]
+        for entry in entries:
+            for label in (entry.breakdown or {}).keys():
+                if label not in labels:
+                    labels.append(label)
+        for index, entry in enumerate(entries):
+            rows.append({
+                "index": index,
+                "employee": entry.employee,
+                "action": entry.action,
+                "existing_id": entry.existing_paysheet.pk if entry.existing_paysheet else "",
+                "breakdown": entry.breakdown or {},
+                "cells": [
+                    {"label": label, "value": (entry.breakdown or {}).get(label, "0")}
+                    for label in labels
+                ],
+            })
+        return rows, labels
 
     def upload_salary_sheet(self, request):
         """
@@ -259,42 +295,19 @@ class UploadBatchAdmin(admin.ModelAdmin):
                     )
                     return redirect("admin:payroll_uploadbatch_change", batch.pk)
 
-                batch = commit_diff(
-                    diff,
-                    remove_absent_ids=[],
-                    category=category,
-                    month=month,
-                    year=year,
-                )
-                warning_note = f" Warnings: {len(diff.warnings)}." if diff.warnings else ""
-                absent_note = (
-                    f" Existing paysheets not present in this file were kept: {len(diff.absent)}."
-                    if diff.absent else ""
-                )
-                self.message_user(
-                    request,
-                    (
-                        f"Salary upload complete. Created: {batch.records_created}. "
-                        f"Updated: {batch.records_updated}.{warning_note}{absent_note}"
-                    ),
-                    messages.SUCCESS if not diff.warnings else messages.WARNING,
-                )
-                paysheets = (
-                    PaySheet.objects
-                    .filter(upload_batch=batch)
-                    .select_related("employee", "category_snapshot")
-                    .order_by("employee__employee_number")
-                )
+                rows, labels = self._preview_rows(diff)
                 return render(
                     request,
-                    "admin/payroll/uploadbatch/result.html",
+                    "admin/payroll/uploadbatch/preview.html",
                     {
                         **self.admin_site.each_context(request),
                         "opts": self.model._meta,
-                        "title": "Salary upload results",
+                        "title": "Review salary upload",
                         "batch": batch,
-                        "paysheets": paysheets,
+                        "rows": rows,
+                        "labels": labels,
                         "warnings": diff.warnings,
+                        "absent": diff.absent,
                     },
                 )
         else:
@@ -308,8 +321,122 @@ class UploadBatchAdmin(admin.ModelAdmin):
         }
         return render(request, "admin/payroll/uploadbatch/upload.html", context)
 
+    def commit_preview(self, request, batch_id):
+        if request.method != "POST":
+            return redirect("admin:payroll_uploadbatch_change", batch_id)
+
+        from payroll.services.upload_service import DiffEntry, DiffResult, commit_diff
+
+        batch = get_object_or_404(UploadBatch, pk=batch_id)
+        labels = request.POST.getlist("label")
+        row_count = int(request.POST.get("row_count", "0") or 0)
+        diff = DiffResult(batch_id=batch.pk)
+
+        for row_index in range(row_count):
+            employee_id = request.POST.get(f"employee_{row_index}")
+            action = request.POST.get(f"action_{row_index}")
+            if not employee_id or action not in {"create", "update"}:
+                continue
+            employee = get_object_or_404(Employee, pk=employee_id)
+            breakdown = {}
+            gross_total = Decimal("0")
+            for label_index, label in enumerate(labels):
+                raw_amount = request.POST.get(f"amount_{row_index}_{label_index}", "0").replace(",", "").strip() or "0"
+                try:
+                    amount = Decimal(raw_amount)
+                except InvalidOperation:
+                    self.message_user(
+                        request,
+                        f"{employee.employee_number} / {label}: amount must be a number.",
+                        messages.ERROR,
+                    )
+                    return redirect("admin:payroll_uploadbatch_change", batch.pk)
+                breakdown[label] = str(amount)
+                gross_total += amount
+
+            existing_paysheet = None
+            existing_id = request.POST.get(f"existing_{row_index}")
+            if existing_id:
+                existing_paysheet = PaySheet.objects.get(pk=existing_id)
+
+            entry = DiffEntry(
+                employee=employee,
+                action=action,
+                breakdown=breakdown,
+                gross_total=gross_total,
+                existing_paysheet=existing_paysheet,
+            )
+            if action == "create":
+                diff.to_create.append(entry)
+            else:
+                diff.to_update.append(entry)
+
+        batch = commit_diff(
+            diff,
+            remove_absent_ids=[],
+            category=batch.category,
+            month=batch.month,
+            year=batch.year,
+        )
+        self.message_user(
+            request,
+            f"Salary upload saved. Created: {batch.records_created}. Updated: {batch.records_updated}.",
+            messages.SUCCESS,
+        )
+        paysheets = (
+            PaySheet.objects
+            .filter(upload_batch=batch)
+            .select_related("employee", "category_snapshot")
+            .order_by("employee__employee_number")
+        )
+        return render(
+            request,
+            "admin/payroll/uploadbatch/result.html",
+            {
+                **self.admin_site.each_context(request),
+                "opts": self.model._meta,
+                "title": "Salary upload results",
+                "batch": batch,
+                "paysheets": paysheets,
+                "warnings": batch.warnings,
+            },
+        )
+
     def download_csv(self, request, batch_id):
         batch = UploadBatch.objects.get(pk=batch_id)
+        paysheets, labels = self._batch_export_data(batch)
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="paysheets-{batch.year}-{batch.month:02d}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow(self._export_headers(labels))
+        for paysheet in paysheets:
+            writer.writerow(self._export_row(paysheet, labels))
+        return response
+
+    def download_excel(self, request, batch_id):
+        from openpyxl import Workbook
+
+        batch = UploadBatch.objects.get(pk=batch_id)
+        paysheets, labels = self._batch_export_data(batch)
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Paysheets"
+        sheet.append(self._export_headers(labels))
+        for paysheet in paysheets:
+            sheet.append(self._export_row(paysheet, labels))
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="paysheets-{batch.year}-{batch.month:02d}.xlsx"'
+        )
+        workbook.save(response)
+        return response
+
+    def _batch_export_data(self, batch):
         paysheets = (
             PaySheet.objects
             .filter(upload_batch=batch)
@@ -321,30 +448,27 @@ class UploadBatchAdmin(admin.ModelAdmin):
             for label in paysheet.breakdown.keys():
                 if label not in labels:
                     labels.append(label)
+        return paysheets, labels
 
-        response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = (
-            f'attachment; filename="paysheets-{batch.year}-{batch.month:02d}.csv"'
-        )
-        writer = csv.writer(response)
-        writer.writerow([
+    def _export_headers(self, labels):
+        return [
             "Employee number",
             "Employee name",
             "Month",
             "Year",
             *labels,
             "Gross total",
-        ])
-        for paysheet in paysheets:
-            writer.writerow([
-                paysheet.employee.employee_number,
-                paysheet.employee.full_name,
-                paysheet.get_month_display_name(),
-                paysheet.year,
-                *[paysheet.breakdown.get(label, "") for label in labels],
-                paysheet.gross_total,
-            ])
-        return response
+        ]
+
+    def _export_row(self, paysheet, labels):
+        return [
+            paysheet.employee.employee_number,
+            paysheet.employee.full_name,
+            paysheet.get_month_display_name(),
+            paysheet.year,
+            *[paysheet.breakdown.get(label, "") for label in labels],
+            paysheet.gross_total,
+        ]
 
     @admin.action(description="Send payslip notification emails for selected batches")
     def send_payslip_emails(self, request, queryset):
@@ -494,7 +618,7 @@ class UploadBatchAdmin(admin.ModelAdmin):
 
 
 @admin.register(PaySheet)
-class PaySheetAdmin(admin.ModelAdmin):
+class PaySheetAdmin(ActionLabelMixin, admin.ModelAdmin):
     """
     Salary breakdown records.
 
@@ -554,8 +678,33 @@ class PaySheetAdmin(admin.ModelAdmin):
         ),
     ]
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ["id", "gross_total", "created_at", "updated_at"]
+        return self.readonly_fields
+
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:
+            return [
+                (
+                    "Identity",
+                    {
+                        "fields": ["employee", "category_snapshot"],
+                        "description": "Choose the employee and category for this manual paysheet.",
+                    },
+                ),
+                (
+                    "Salary data",
+                    {
+                        "fields": ["month", "year", "breakdown_editor", "gross_total"],
+                        "description": "Gross total is calculated from the salary rows when saved.",
+                    },
+                ),
+            ]
+        return self.fieldsets
+
     def has_add_permission(self, request):
-        return False
+        return request.user.is_staff
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
@@ -588,7 +737,7 @@ class PaySheetAdmin(admin.ModelAdmin):
 
 
 @admin.register(EmailLog)
-class EmailLogAdmin(admin.ModelAdmin):
+class EmailLogAdmin(ActionLabelMixin, admin.ModelAdmin):
     """
     Full history of every payslip email send attempt.
 

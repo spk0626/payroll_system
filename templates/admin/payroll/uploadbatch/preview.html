@@ -1,0 +1,101 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+  <div class="module">
+    <h2>Review upload before saving</h2>
+    <table>
+      <tbody>
+        <tr><th>Category</th><td>{{ batch.category }}</td></tr>
+        <tr><th>Period</th><td>{{ batch.get_month_display }} {{ batch.year }}</td></tr>
+        <tr><th>File</th><td>{{ batch.original_filename }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if warnings %}
+    <div class="module">
+      <h2>Warnings</h2>
+      <ul class="messagelist">
+        {% for warning in warnings %}
+          <li class="warning">{{ warning }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if absent %}
+    <div class="module">
+      <h2>Existing paysheets not in this file</h2>
+      <p class="help">These existing paysheets will be kept.</p>
+      <table>
+        <tbody>
+          {% for entry in absent %}
+            <tr>
+              <td>{{ entry.employee.employee_number }}</td>
+              <td>{{ entry.employee.full_name }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'admin:payroll_uploadbatch_commit_preview' batch.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="row_count" value="{{ rows|length }}">
+    {% for label in labels %}
+      <input type="hidden" name="label" value="{{ label }}">
+    {% endfor %}
+
+    <div class="module">
+      <h2>Editable salary table</h2>
+      <div class="breakdown-table-wrap">
+        <table class="breakdown-editor">
+          <thead>
+            <tr>
+              <th>Employee number</th>
+              <th>Employee</th>
+              <th>Action</th>
+              {% for label in labels %}
+                <th>{{ label }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>
+                  {{ row.employee.employee_number }}
+                  <input type="hidden" name="employee_{{ row.index }}" value="{{ row.employee.pk }}">
+                  <input type="hidden" name="action_{{ row.index }}" value="{{ row.action }}">
+                  <input type="hidden" name="existing_{{ row.index }}" value="{{ row.existing_id }}">
+                </td>
+                <td>{{ row.employee.full_name }}</td>
+                <td>{{ row.action|title }}</td>
+                {% for cell in row.cells %}
+                  <td>
+                    <input
+                      type="text"
+                      name="amount_{{ row.index }}_{{ forloop.counter0 }}"
+                      value="{{ cell.value }}"
+                      inputmode="decimal"
+                    >
+                  </td>
+                {% endfor %}
+              </tr>
+            {% empty %}
+              <tr><td colspan="{{ labels|length|add:3 }}">No valid employee rows were found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <input type="submit" value="Confirm and save" class="default">
+      <a href="{% url 'admin:payroll_uploadbatch_upload' %}" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -21,9 +21,41 @@ DEFAULT_LOGO_URL = (
 
 def company_settings(request):
     """Inject company-level settings into every template context."""
-    return {
-        "COMPANY_NAME": getattr(settings, "COMPANY_NAME", ""),
+    company_name = getattr(settings, "COMPANY_NAME", "Syntax Asia")
+    logo_url = DEFAULT_LOGO_URL
+    context = {
         "COMPANY_ADDRESS": getattr(settings, "COMPANY_ADDRESS", ""),
         "CURRENCY_SYMBOL": getattr(settings, "CURRENCY_SYMBOL", "LKR"),
-        "COMPANY_LOGO_URL": DEFAULT_LOGO_URL,
     }
+
+    try:
+        from .models import CompanySetting
+
+        setting = CompanySetting.load()
+        company_name = setting.company_name or company_name
+        if setting.logo:
+            logo_url = setting.logo.url
+    except Exception:
+        pass
+
+    context.update({
+        "COMPANY_NAME": company_name,
+        "COMPANY_LOGO_URL": logo_url,
+    })
+
+    admin_url = "/" + getattr(settings, "ADMIN_URL", "management-portal/").strip("/")
+    if request.path.rstrip("/") == admin_url:
+        try:
+            from core.constants import MONTHS
+            from employees.models import Employee
+            from payroll.models import UploadBatch
+
+            last_batch = UploadBatch.objects.order_by("-created_at").first()
+            context["employee_count"] = Employee.objects.filter(is_active=True).count()
+            if last_batch:
+                context["last_batch_month"] = dict(MONTHS).get(last_batch.month, str(last_batch.month))
+                context["last_batch_status"] = last_batch.get_status_display()
+        except Exception:
+            pass
+
+    return context

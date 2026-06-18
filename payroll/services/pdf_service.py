@@ -40,51 +40,51 @@ def _draw_payslip_page(pdf, paysheet) -> None:
     month_name = dict(MONTHS).get(paysheet.month, str(paysheet.month))
     currency = getattr(settings, "CURRENCY_SYMBOL", "LKR")
 
-    primary = colors.HexColor("#2F5F98")
+    primary = colors.HexColor("#0243B0")
+    blue_soft = colors.HexColor("#EAF1FF")
+    red = colors.HexColor("#B42318")
     pdf.setStrokeColor(primary)
     pdf.setLineWidth(1.5)
     pdf.setFont("Helvetica-Bold", 14)
     pdf.drawString(margin, y, settings.COMPANY_NAME)
-    _draw_logo(pdf, width - margin - 64, y - 30)
+    _draw_logo(pdf, width - margin - 48, y - 48)
     pdf.setFont("Helvetica", 9)
     if getattr(settings, "COMPANY_ADDRESS", ""):
         pdf.drawString(margin, y - 11, settings.COMPANY_ADDRESS)
-    pdf.line(margin, y - 24, width - margin, y - 24)
+    pdf.line(margin, y - 56, width - margin, y - 56)
 
-    y -= 42
+    y -= 78
     pdf.setFont("Helvetica-Bold", 12)
     pdf.drawCentredString(width / 2, y, "SALARY PAYSLIP")
-    pdf.setFont("Helvetica", 10)
-    pdf.drawCentredString(width / 2, y - 10, f"{month_name} {paysheet.year}")
+    pdf.setFont("Helvetica", 11)
+    pdf.drawCentredString(width / 2, y - 17, f"{month_name} {paysheet.year}")
 
-    y -= 34
+    y -= 44
     _draw_info_box(pdf, paysheet, margin, y, width - (2 * margin))
 
-    y -= 60
+    y -= 74
     rows = _breakdown_rows(paysheet)
-    row_height = 18 if len(rows) <= 15 else 12
-    font_size = 10 if len(rows) <= 15 else 8
+    earnings = [row for row in rows if not row["is_deduction"]]
+    deductions = [row for row in rows if row["is_deduction"]]
+    row_height = 18
+    font_size = 10
     table_width = width - (2 * margin)
     amount_x = width - margin - 4
 
-    pdf.setFillColor(primary)
-    pdf.rect(margin, y - row_height, table_width, row_height, fill=1, stroke=0)
-    pdf.setFillColor(colors.white)
-    pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(margin + 5, y - 12, "DESCRIPTION")
-    pdf.drawRightString(amount_x, y - 12, f"AMOUNT ({currency})")
-    y -= row_height
+    y = _draw_breakdown_section(
+        pdf, "Earnings", earnings, margin, y, table_width, amount_x,
+        currency, row_height, font_size, primary, blue_soft, colors.black,
+        paysheet, month_name, width, height,
+    )
+    y -= 12
+    y = _draw_breakdown_section(
+        pdf, "Deductions", deductions, margin, y, table_width, amount_x,
+        currency, row_height, font_size, primary, blue_soft, red,
+        paysheet, month_name, width, height,
+    )
+    y -= 10
 
-    pdf.setFont("Helvetica", font_size)
-    for index, row in enumerate(rows):
-        fill = colors.white if index % 2 == 0 else colors.HexColor("#f0f0f0")
-        pdf.setFillColor(fill)
-        pdf.rect(margin, y - row_height, table_width, row_height, fill=1, stroke=0)
-        pdf.setFillColor(colors.black)
-        pdf.drawString(margin + 5, y - row_height + 5, _clip(row["label"], 70))
-        pdf.drawRightString(amount_x, y - row_height + 5, f"{row['amount']:.2f}")
-        y -= row_height
-
+    y = _ensure_pdf_space(pdf, y, 18, margin, paysheet, month_name, width, height, primary)
     pdf.setFillColor(primary)
     pdf.rect(margin, y - 18, table_width, 18, fill=1, stroke=0)
     pdf.setFillColor(colors.white)
@@ -97,11 +97,77 @@ def _draw_payslip_page(pdf, paysheet) -> None:
     pdf.drawString(margin, margin, f"Confidential - Intended solely for {employee.full_name}. Do not distribute.")
 
 
+def _draw_breakdown_section(
+    pdf, title, rows, margin, y, table_width, amount_x, currency,
+    row_height, font_size, primary, header_fill, amount_color,
+    paysheet, month_name, width, height,
+) -> float:
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(margin, y, title)
+    y -= 9
+
+    y = _draw_table_header(pdf, margin, y, table_width, amount_x, currency, row_height, primary, header_fill)
+
+    if not rows:
+        y = _ensure_pdf_space(pdf, y, row_height, margin, paysheet, month_name, width, height, primary)
+        pdf.setFillColor(colors.white)
+        pdf.rect(margin, y - row_height, table_width, row_height, fill=1, stroke=0)
+        pdf.setFillColor(colors.HexColor("#777777"))
+        pdf.setFont("Helvetica", font_size)
+        pdf.drawString(margin + 5, y - row_height + 4, f"No {title.lower()} recorded.")
+        return y - row_height
+
+    pdf.setFont("Helvetica", font_size)
+    for index, row in enumerate(rows):
+        y = _ensure_pdf_space(pdf, y, row_height, margin, paysheet, month_name, width, height, primary)
+        if y == height - margin - 34:
+            pdf.setFillColor(primary)
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(margin, y, title)
+            y -= 9
+            y = _draw_table_header(pdf, margin, y, table_width, amount_x, currency, row_height, primary, header_fill)
+            pdf.setFont("Helvetica", font_size)
+        fill = colors.white if index % 2 == 0 else colors.HexColor("#EEF3FC")
+        pdf.setFillColor(fill)
+        pdf.rect(margin, y - row_height, table_width, row_height, fill=1, stroke=0)
+        pdf.setFillColor(colors.black)
+        pdf.drawString(margin + 5, y - row_height + 4, _clip(row["label"], 70))
+        pdf.setFillColor(amount_color)
+        pdf.drawRightString(amount_x, y - row_height + 4, f"{row['amount']:.2f}")
+        y -= row_height
+    return y
+
+
+def _draw_table_header(pdf, margin, y, table_width, amount_x, currency, row_height, primary, header_fill) -> float:
+    pdf.setFillColor(header_fill)
+    pdf.rect(margin, y - row_height, table_width, row_height, fill=1, stroke=0)
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 8)
+    pdf.drawString(margin + 5, y - row_height + 5, "DESCRIPTION")
+    pdf.drawRightString(amount_x, y - row_height + 5, f"AMOUNT ({currency})")
+    return y - row_height
+
+
+def _ensure_pdf_space(pdf, y, needed, margin, paysheet, month_name, width, height, primary) -> float:
+    if y - needed >= margin + 34:
+        return y
+    pdf.showPage()
+    y = height - margin
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(margin, y, settings.COMPANY_NAME)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawRightString(width - margin, y, f"{month_name} {paysheet.year} continued")
+    pdf.line(margin, y - 14, width - margin, y - 14)
+    return y - 34
+
+
 def _draw_info_box(pdf, paysheet, x, y, width) -> None:
     employee = paysheet.employee
     pdf.setFillColor(colors.HexColor("#f5f5f5"))
     pdf.setStrokeColor(colors.HexColor("#d0d0d0"))
-    pdf.rect(x, y - 56, width, 56, fill=1, stroke=1)
+    pdf.rect(x, y - 64, width, 64, fill=1, stroke=1)
 
     left = [
         ("Employee No:", employee.employee_number),
@@ -121,11 +187,11 @@ def _draw_info_box(pdf, paysheet, x, y, width) -> None:
 def _draw_pairs(pdf, pairs, x, y) -> None:
     for label, value in pairs:
         pdf.setFillColor(colors.black)
-        pdf.setFont("Helvetica-Bold", 8)
+        pdf.setFont("Helvetica-Bold", 9)
         pdf.drawString(x, y, label)
-        pdf.setFont("Helvetica", 8)
-        pdf.drawString(x + 64, y, _clip(str(value), 38))
-        y -= 12
+        pdf.setFont("Helvetica", 9)
+        pdf.drawString(x + 76, y, _clip(str(value), 38))
+        y -= 14
 
 
 def _draw_logo(pdf, x, y) -> None:
@@ -134,16 +200,16 @@ def _draw_logo(pdf, x, y) -> None:
 
         setting = CompanySetting.load()
         if setting.logo:
-            pdf.drawImage(ImageReader(setting.logo.path), x, y, width=64, height=42, preserveAspectRatio=True, mask="auto")
+            pdf.drawImage(ImageReader(setting.logo.path), x, y, width=48, height=48, preserveAspectRatio=True, mask="auto")
             return
     except Exception:
         pass
 
     pdf.setFillColor(colors.HexColor("#2F5F98"))
-    pdf.rect(x + 16, y, 42, 42, fill=1, stroke=0)
+    pdf.rect(x, y, 48, 48, fill=1, stroke=0)
     pdf.setFillColor(colors.white)
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawCentredString(x + 37, y + 16, "SA")
+    pdf.drawCentredString(x + 24, y + 18, "SA")
 
 
 def _breakdown_rows(paysheet) -> List[Dict]:
@@ -153,7 +219,11 @@ def _breakdown_rows(paysheet) -> List[Dict]:
             amount_dec = Decimal(str(amount))
         except InvalidOperation:
             amount_dec = Decimal("0")
-        rows.append({"label": label, "amount": amount_dec})
+        rows.append({
+            "label": label,
+            "amount": amount_dec,
+            "is_deduction": amount_dec < 0,
+        })
     return rows
 
 

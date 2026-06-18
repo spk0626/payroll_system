@@ -1,18 +1,20 @@
 {% extends "admin/base.html" %}
 {% load i18n static %}
 
-{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block title %}
+  {% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_("Syntax Asia Payroll") }}
+{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=20">
+<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=40">
 {% endblock %}
 
 {% block extrahead %}
 {{ block.super }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script>
   (function () {
@@ -53,6 +55,36 @@
           toggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
         });
       });
+
+      document.querySelectorAll(".actions select[name='action']").forEach(function (select) {
+        if (select.options.length && select.options[0].text.indexOf("---") !== -1) {
+          select.options[0].text = "Select an action...";
+        }
+      });
+
+      document.querySelectorAll("select option").forEach(function (option) {
+        if (/^-+$/.test(option.text.trim())) {
+          option.text = "Select...";
+        }
+      });
+
+      var changelist = document.getElementById("changelist");
+      var filter = document.getElementById("changelist-filter");
+      var toolbar = document.getElementById("toolbar");
+      if (changelist && filter && toolbar && !document.querySelector(".admin-filter-toggle")) {
+        var filterButton = document.createElement("button");
+        filterButton.type = "button";
+        filterButton.className = "admin-filter-toggle";
+        filterButton.innerHTML = '<i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Filters';
+        filterButton.setAttribute("aria-expanded", "false");
+        toolbar.appendChild(filterButton);
+
+        filterButton.addEventListener("click", function () {
+          var open = changelist.classList.toggle("admin-filter-open");
+          filterButton.setAttribute("aria-expanded", String(open));
+        });
+      }
+
     });
   })();
 </script>
@@ -61,11 +93,15 @@
 {% block branding %}
 <h1 id="site-name" class="admin-brand">
   <a class="admin-brand__link" href="{% url 'admin:index' %}">
-    <span class="admin-brand__logo-frame" aria-hidden="true">
-      <img class="admin-brand__logo" src="{% static 'img/syntax-asia-logo.svg' %}" alt="">
+    <span class="admin-brand__logo-frame brand-icon">
+      <img
+        class="admin-brand__logo"
+        src="{{ COMPANY_LOGO_URL|default:'/static/img/syntax-asia-logo.jpeg' }}"
+        alt="{{ COMPANY_NAME|default:'Syntax Asia' }}"
+      >
     </span>
-    <span>
-      <span class="admin-brand__title">Syntax Asia</span>
+    <span class="admin-brand__text">
+      <span class="admin-brand__title">{{ COMPANY_NAME|default:"Syntax Asia" }}</span>
       <span class="admin-brand__subtitle">Payroll Administration</span>
     </span>
   </a>
@@ -75,7 +111,7 @@
 {% block usertools %}
 {% if has_permission %}
 <div id="user-tools" class="admin-actions">
-  <span class="admin-user-pill">{{ request.user.username|default:user.username }}</span>
+  <span class="admin-user-pill">{% firstof user.get_short_name user.get_username request.user.username %}</span>
   {% if site_url %}
     <a class="admin-nav-button" href="{{ site_url }}">{% translate 'View site' %}</a>
   {% endif %}

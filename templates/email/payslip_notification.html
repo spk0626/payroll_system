@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Payslip — {{ month_name }} {{ paysheet.year }}</title>
+<title>Payslip for {{ month_name }} {{ paysheet.year }}</title>
 </head>
 <body style="margin:0;padding:0;background:#f0f4f8;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:32px 16px;">
@@ -12,17 +12,17 @@
 
     <!-- Header -->
     <tr>
-      <td style="background:#2F5F98;padding:24px 32px;">
+      <td style="background:#0243B0;padding:24px 32px;">
         <p style="margin:0;color:#fff;font-size:20px;font-weight:700;letter-spacing:.02em;">{{ company_name }}</p>
-        <p style="margin:4px 0 0;color:#90caf9;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Payroll</p>
+        <p style="margin:4px 0 0;color:#90caf9;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;">Payroll</p>
       </td>
     </tr>
 
     <!-- Title -->
     <tr>
       <td style="background:#f5f7fa;padding:16px 32px;border-bottom:1px solid #e0e7ef;">
-        <p style="margin:0;font-size:16px;font-weight:700;color:#2F5F98;">
-          Salary Payslip — {{ month_name }} {{ paysheet.year }}
+        <p style="margin:0;font-size:16px;font-weight:700;color:#0243B0;">
+          Salary Payslip for {{ month_name }} {{ paysheet.year }}
         </p>
         <p style="margin:4px 0 0;font-size:13px;color:#666;">
           {{ employee.full_name }} &nbsp;·&nbsp; {{ employee.employee_number }}
@@ -41,9 +41,9 @@
         <!-- Breakdown table -->
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:0;">
           <thead>
-            <tr style="background:#2F5F98;">
-              <th style="padding:8px 12px;text-align:left;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Description</th>
-              <th style="padding:8px 12px;text-align:right;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Amount ({{ currency_symbol }})</th>
+            <tr style="background:#0243B0;">
+              <th style="padding:8px 12px;text-align:left;color:#fff;font-size:12px;text-transform:none;letter-spacing:0;font-weight:700;">Description</th>
+              <th style="padding:8px 12px;text-align:right;color:#fff;font-size:12px;text-transform:none;letter-spacing:0;font-weight:700;">Amount ({{ currency_symbol }})</th>
             </tr>
           </thead>
           <tbody>
@@ -55,7 +55,7 @@
             {% endfor %}
           </tbody>
           <tfoot>
-            <tr style="background:#2F5F98;">
+            <tr style="background:#0243B0;">
               <td style="padding:10px 12px;color:#fff;font-weight:700;font-size:14px;">Gross Total</td>
               <td style="padding:10px 12px;color:#fff;font-weight:700;font-size:14px;text-align:right;">{{ currency_symbol }} {{ paysheet.gross_total }}</td>
             </tr>
@@ -68,7 +68,7 @@
     <tr>
       <td style="background:#f9f9f9;padding:16px 32px;border-top:1px solid #e0e0e0;">
         <p style="margin:0;color:#999;font-size:11px;font-style:italic;">
-          Confidential — This payslip is intended solely for {{ employee.full_name }}. Do not distribute.
+          Confidential. This payslip is intended solely for {{ employee.full_name }}. Do not distribute.
         </p>
       </td>
     </tr>

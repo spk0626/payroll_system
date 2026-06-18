@@ -5,6 +5,11 @@ from django.utils.translation import gettext_lazy as _
 class CompanySetting(models.Model):
     """Singleton company branding settings managed from the admin portal."""
 
+    company_name = models.CharField(
+        max_length=120,
+        default="Syntax Asia",
+        verbose_name=_("Company name"),
+    )
     logo = models.FileField(
         upload_to="company/",
         blank=True,

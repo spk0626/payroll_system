@@ -3,6 +3,10 @@ setlocal
 
 cd /d "%~dp0"
 
+set HOST=127.0.0.1
+set PORT=8004
+set LOCAL_URL=http://%HOST%:%PORT%/
+
 if not exist ".venv\Scripts\python.exe" (
     echo Virtual environment not found.
     echo Run setup_first_time.bat first.
@@ -18,12 +22,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-netstat -ano | findstr /R /C:":8004 .*LISTENING" >nul
+netstat -ano | findstr /R /C:":%PORT% .*LISTENING" >nul
 if not errorlevel 1 (
-    echo Payroll system already appears to be running at http://127.0.0.1:8004/
+    echo Payroll system already appears to be running at %LOCAL_URL%
     exit /b 0
 )
 
-echo Starting payroll system at http://127.0.0.1:8004/
+echo Starting payroll system at %LOCAL_URL%
+set USE_DATABASE_URL=False
 set DATABASE_URL=
-".venv\Scripts\python.exe" manage.py runserver 127.0.0.1:8004
+".venv\Scripts\python.exe" manage.py runserver %HOST%:%PORT%

@@ -1,14 +1,14 @@
 /*
- * print.css - A4 single-page payslip guarantee
+ * print.css - A4 payslip print styles
  *
  * This file is ONLY loaded in the print view template.
- * The design contract: no matter how many salary components exist,
- * the payslip fits on exactly one A4 page.
+ * Each payslip starts on a new page. Long payslips may continue onto another
+ * page instead of shrinking text below a readable size.
  */
 
 @page {
   size: A4 portrait;
-  margin: 1cm 1.2cm;
+  margin: 1.2cm;
 }
 
 *, *::before, *::after {
@@ -25,21 +25,22 @@ body {
   background: #fff;
   font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
   font-size: 12pt;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .slip-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #2F5F98;
-  margin-bottom: 10px;
+  min-height: 58px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #0243B0;
+  margin-bottom: 14px;
 }
 
 .slip-header__company-name {
-  color: #2F5F98;
-  font-size: 18px;
+  color: #0243B0;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: .02em;
 }
@@ -58,49 +59,54 @@ body {
   justify-content: center;
   border-radius: 6px;
   color: #fff;
-  background: #2F5F98;
+  background: #0243B0;
   font-weight: 700;
 }
 
 .slip-header__logo {
-  width: 64px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
+  padding: 0;
+  border: 0;
   border-radius: 8px;
+  background: #ffffff;
 }
 
 .slip-title {
   text-align: center;
-  margin: 8px 0;
+  margin: 12px 0 18px;
 }
 
 .slip-title h1 {
-  color: #2F5F98;
-  font-size: 14px;
+  color: #0243B0;
+  font-size: 16px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .08em;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 7px;
 }
 
 .slip-title p {
   color: #555;
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .slip-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2px 24px;
-  padding: 8px 12px;
-  margin-bottom: 10px;
+  gap: 5px 28px;
+  padding: 13px 14px;
+  margin-bottom: 18px;
   border: 1px solid #d0d8e4;
   border-radius: 6px;
-  background: #f5f7fa;
+  background: #f5f7fb;
+  font-size: 13px;
 }
 
 .slip-info__item {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
 
 .slip-info__label {
@@ -114,25 +120,35 @@ body {
   color: #111;
 }
 
+.slip-section {
+  margin-bottom: 16px;
+}
+
+.slip-section__title {
+  margin-bottom: 8px;
+  padding-top: 2px;
+  color: #0243B0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .slip-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 10px;
 }
 
-.slip-table thead tr,
-.slip-table tfoot tr {
-  background: #2F5F98;
+.slip-table thead tr {
+  background: #eaf1ff;
 }
 
 .slip-table thead th {
-  padding: 5px 8px;
-  color: #fff;
+  padding: 7px 10px;
+  color: #0b326f;
   font-size: 11px;
   font-weight: 700;
   text-align: left;
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .slip-table thead th:last-child,
@@ -142,11 +158,11 @@ body {
 }
 
 .slip-table tbody tr:nth-child(even) {
-  background: #f0f4f8;
+  background: #eef3fc;
 }
 
 .slip-table tbody td {
-  padding: 4px 8px;
+  padding: 7px 10px;
   border-bottom: 1px solid #e0e7ef;
   font-size: 11.5px;
 }
@@ -155,28 +171,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.slip-table tfoot td {
-  padding: 6px 8px;
+.slip-table__deduction {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.slip-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 10px;
+  margin: 10px 0;
   color: #fff;
-  font-size: 12px;
+  background: #0243B0;
+  font-size: 14px;
   font-weight: 700;
-}
-
-.many-components .slip-table tbody td {
-  font-size: 9px;
-  padding: 2.5px 8px;
-}
-
-.many-components .slip-info {
-  font-size: 9px;
-}
-
-.many-components .slip-title h1 {
-  font-size: 11px;
-}
-
-.many-components .slip-header__company-name {
-  font-size: 13px;
 }
 
 .slip-footer {
@@ -204,11 +213,36 @@ body {
 
 .print-btn-bar {
   display: flex;
+  align-items: center;
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
   border-bottom: 1px solid #d0d8e4;
   background: #f0f4f8;
+}
+
+.print-btn-bar a,
+.print-btn-bar button {
+  display: inline-block;
+  min-height: 36px;
+  padding: 7px 14px;
+  border: 1px solid #c8d1dc;
+  border-radius: 6px;
+  background: #fff;
+  color: #394967;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.print-btn-bar button {
+  border-color: #0243B0;
+  background: #0243B0;
+  color: #fff;
 }
 
 @media print {
@@ -219,6 +253,13 @@ body {
   .slip-page {
     break-after: page;
     page-break-after: always;
+  }
+
+  .slip-section,
+  .slip-table tr,
+  .slip-total {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .slip-page:last-child {

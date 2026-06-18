@@ -3,20 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>All Payslips - {{ employee.full_name }}</title>
+  <title>All Payslips | {{ employee.full_name }}</title>
   {% load static %}
-  <link rel="stylesheet" href="{% static 'css/print.css' %}">
+  <link rel="stylesheet" href="{% static 'css/print.css' %}?v=4">
 </head>
 <body class="print-all">
   <div class="print-btn-bar">
-    <a href="{% url 'payroll:dashboard' %}" style="color:#555;font-size:13px;text-decoration:none">&larr; Back</a>
-    <button onclick="window.print()" style="background:#2F5F98;color:#fff;border:none;padding:.5rem 1.5rem;border-radius:0;font-size:14px;font-weight:600;cursor:pointer">
-      Print / Save all as PDF
-    </button>
+    <a href="{% url 'payroll:dashboard' %}">Back</a>
+    <button onclick="window.print()">Print / Save all as PDF</button>
   </div>
 
   {% for entry in entries %}
-    <div class="slip-page{% if entry.many_components %} many-components{% endif %}">
+    <div class="slip-page">
       <header class="slip-header">
         <div class="slip-header__company">
           <div class="slip-header__company-name">{{ COMPANY_NAME }}</div>
@@ -55,7 +53,7 @@
         </div>
         <div class="slip-info__item">
           <span class="slip-info__label">Bank:</span>
-          <span class="slip-info__value">{{ employee.bank_name }} - {{ employee.bank_branch_name }}</span>
+          <span class="slip-info__value">{{ employee.bank_name }}, {{ employee.bank_branch_name }}</span>
         </div>
         <div class="slip-info__item">
           <span class="slip-info__label">Account Name:</span>
@@ -67,34 +65,58 @@
         </div>
       </div>
 
-      <table class="slip-table">
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th style="text-align:right">Amount ({{ CURRENCY_SYMBOL }})</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in entry.breakdown_rows %}
+      <section class="slip-section">
+        <h2 class="slip-section__title">Earnings</h2>
+        <table class="slip-table">
+          <thead>
             <tr>
-              <td>{{ row.label }}</td>
-              <td style="text-align:right">{{ row.amount|floatformat:2 }}</td>
+              <th>Description</th>
+              <th>Amount ({{ CURRENCY_SYMBOL }})</th>
             </tr>
-          {% empty %}
-            <tr><td colspan="2" style="text-align:center;color:#aaa">No data</td></tr>
-          {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td>Gross Total</td>
-            <td style="text-align:right">{{ CURRENCY_SYMBOL }} {{ entry.paysheet.gross_total|floatformat:2 }}</td>
-          </tr>
-        </tfoot>
-      </table>
+          </thead>
+          <tbody>
+            {% for row in entry.breakdown.earnings %}
+              <tr>
+                <td>{{ row.label }}</td>
+                <td>{{ row.amount|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="2">No earnings recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="slip-section">
+        <h2 class="slip-section__title">Deductions</h2>
+        <table class="slip-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Amount ({{ CURRENCY_SYMBOL }})</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in entry.breakdown.deductions %}
+              <tr>
+                <td>{{ row.label }}</td>
+                <td class="slip-table__deduction">{{ row.amount|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="2">No deductions recorded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <div class="slip-total">
+        <span>Gross Total</span>
+        <span>{{ CURRENCY_SYMBOL }} {{ entry.paysheet.gross_total|floatformat:2 }}</span>
+      </div>
 
       <footer class="slip-footer">
         <span class="slip-footer__notice">
-          Confidential - Intended solely for {{ employee.full_name }}. Do not distribute.
+          Confidential. Intended solely for {{ employee.full_name }}. Do not distribute.
         </span>
         <span class="slip-footer__generated">
           Generated {{ entry.paysheet.updated_at|date:"d M Y" }}

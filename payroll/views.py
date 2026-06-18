@@ -69,8 +69,20 @@ def _breakdown_rows(paysheet: PaySheet) -> List[Dict[str, Decimal]]:
             amount_dec = Decimal(str(amount))
         except InvalidOperation:
             amount_dec = Decimal("0")
-        rows.append({"label": label, "amount": amount_dec})
+        rows.append({
+            "label": label,
+            "amount": amount_dec,
+            "is_deduction": amount_dec < 0,
+        })
     return rows
+
+
+def _split_breakdown_rows(paysheet: PaySheet) -> Dict[str, List[Dict[str, Decimal]]]:
+    rows = _breakdown_rows(paysheet)
+    return {
+        "earnings": [row for row in rows if not row["is_deduction"]],
+        "deductions": [row for row in rows if row["is_deduction"]],
+    }
 
 
 class DashboardView(EmployeeRequiredMixin, View):
@@ -145,7 +157,7 @@ class PayslipDetailView(EmployeeRequiredMixin, View):
 
         return render(request, self.template_name, {
             "paysheet": paysheet,
-            "breakdown_rows": _breakdown_rows(paysheet),
+            "breakdown": _split_breakdown_rows(paysheet),
             "month_name": months_map.get(paysheet.month, str(paysheet.month)),
             "employee": paysheet.employee,
         })
@@ -155,24 +167,21 @@ class PayslipPrintView(EmployeeRequiredMixin, View):
     """
     Print-optimised payslip view.
 
-    Uses a minimal template with A4 print CSS. The design guarantees
-    the entire payslip fits on exactly one A4 page regardless of how
-    many salary components exist (5 or 35).
+    Uses a minimal template with A4 print CSS. Each payslip starts on
+    a fresh page, and long payslips can continue without shrinking text.
     """
 
     template_name = "payroll/payslip_print.html"
 
     def get(self, request, uuid):
         paysheet = _get_owned_paysheet(uuid, request.user)
-        breakdown_rows = _breakdown_rows(paysheet)
         months_map = dict(MONTHS)
 
         return render(request, self.template_name, {
             "paysheet": paysheet,
-            "breakdown_rows": breakdown_rows,
+            "breakdown": _split_breakdown_rows(paysheet),
             "month_name": months_map.get(paysheet.month, str(paysheet.month)),
             "employee": paysheet.employee,
-            "many_components": len(breakdown_rows) > 15,
         })
 
 
@@ -192,9 +201,8 @@ class PayslipPrintAllView(EmployeeRequiredMixin, View):
         entries = [
             {
                 "paysheet": paysheet,
-                "breakdown_rows": _breakdown_rows(paysheet),
+                "breakdown": _split_breakdown_rows(paysheet),
                 "month_name": months_map.get(paysheet.month, str(paysheet.month)),
-                "many_components": len(paysheet.breakdown) > 15,
             }
             for paysheet in paysheets
         ]

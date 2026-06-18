@@ -13,25 +13,29 @@
   --danger-bg: #FDE8E7;
   --danger-text: #B42318;
   --shadow: 0 24px 70px rgba(17, 24, 39, 0.14);
+  --text-primary: var(--text);
+  --text-muted: var(--muted);
+  --border-strong: var(--line);
+  --blue-mid: var(--brand-strong);
+  --blue-light: var(--brand-soft);
+  --radius-sm: 6px;
   font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #0B1222;
-    --surface: #121C32;
-    --surface-muted: #182744;
-    --text: #F4F7FB;
-    --muted: #BAC6DC;
-    --line: rgba(255, 255, 255, 0.14);
-    --brand: #7EA8FF;
-    --brand-strong: #A8C4FF;
-    --brand-soft: rgba(126, 168, 255, 0.16);
-    --danger-bg: rgba(180, 35, 24, 0.20);
-    --danger-text: #FCA5A5;
-    --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
-  }
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1222;
+  --surface: #121C32;
+  --surface-muted: #182744;
+  --text: #F4F7FB;
+  --muted: #BAC6DC;
+  --line: rgba(255, 255, 255, 0.14);
+  --brand: #7EA8FF;
+  --brand-strong: #A8C4FF;
+  --brand-soft: rgba(126, 168, 255, 0.16);
+  --danger-bg: rgba(180, 35, 24, 0.20);
+  --danger-text: #FCA5A5;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
 }
 
 * {
@@ -111,14 +115,53 @@ a {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.brand-logo {
-  width: 58px;
-  height: 58px;
-  object-fit: cover;
+.brand-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+.brand-icon img,
+.brand-icon svg,
+.brand-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.auth-theme-button {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.auth-theme-button .ti-sun {
+  display: none;
+}
+
+[data-theme="dark"] .auth-theme-button .ti-moon {
+  display: none;
+}
+
+[data-theme="dark"] .auth-theme-button .ti-sun {
+  display: inline-block;
 }
 
 .brand-text {
@@ -177,9 +220,9 @@ a {
 .panel-kicker {
   margin: 0 0 6px;
   color: var(--brand);
-  font-size: 13px;
-  font-weight: 850;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: none;
 }
 
 .auth-panel h2,
@@ -187,6 +230,7 @@ a {
   margin: 0;
   font-size: clamp(28px, 2.1vw, 36px);
   line-height: 1.18;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -237,21 +281,83 @@ label {
   text-decoration: underline;
 }
 
-input {
-  width: 100%;
-  min-height: 50px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px 14px;
-  color: var(--text);
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="file"],
+select,
+textarea {
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
   background: var(--surface);
-  font: inherit;
-  font-size: 17px;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  height: 38px;
+  line-height: 1.2;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-input:focus {
-  outline: 3px solid rgba(2, 67, 176, 0.18);
-  border-color: var(--brand);
+textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--blue-mid);
+  box-shadow: 0 0 0 3px var(--blue-light);
+}
+
+select {
+  padding-right: 32px;
+  appearance: none;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235A6480' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+input[type="file"] {
+  height: auto;
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  line-height: 1.4;
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  color: #ffffff;
+  background: var(--brand);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.field-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.field-help {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
 }
 
 .password-field {
@@ -259,24 +365,26 @@ input:focus {
 }
 
 .password-field input {
-  padding-right: 84px;
+  padding-right: 88px;
 }
 
 .password-toggle {
   position: absolute;
-  top: 50%;
-  right: 8px;
+  top: 6px;
+  right: 6px;
+  bottom: 6px;
   min-width: 64px;
-  min-height: 36px;
+  min-height: 0;
+  height: auto;
   border: 0;
   border-radius: 6px;
+  padding: 0 12px;
   color: var(--brand);
   background: var(--brand-soft);
   font: inherit;
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transform: translateY(-50%);
 }
 
 .password-toggle:hover {
@@ -466,9 +574,9 @@ input:focus {
 .metric-label {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
-  font-weight: 750;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: none;
 }
 
 .metric-value {
@@ -746,7 +854,7 @@ input:focus {
     gap: 12px;
   }
 
-  .brand-logo,
+  .brand-icon,
   .brand-mark {
     width: 48px;
     height: 48px;

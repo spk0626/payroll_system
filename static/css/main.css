@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    Syntax Asia Salary System — main.css
    Design: clean, professional, minimal. No gradients. No shadows.
-   Palette: steel blue (#2F5F98) primary, warm white (#fafafa) bg.
+   Palette: Syntax Asia blue (#0243B0) primary, warm white (#fafafa) bg.
    ───────────────────────────────────────────────────────────────────────── */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,39 +23,20 @@
   --text-muted:     #6B7280;
 
   --border:         #D8E1F0;
+  --border-strong:  #C8D4E6;
   --border-focus:   #0243B0;
   --bg:             #F5F7FB;
   --bg-card:        #ffffff;
   --bg-input:       #ffffff;
+  --surface:         var(--bg-card);
+  --blue-mid:        var(--c-primary-dk);
+  --blue-light:      var(--c-info-bg);
 
   --radius:    6px;
+  --radius-sm: 6px;
   --radius-lg: 8px;
   --font:      Inter, "Segoe UI", Arial, sans-serif;
   --transition: 150ms ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --c-primary: #7EA8FF;
-    --c-primary-dk: #A8C4FF;
-    --c-accent: #7EA8FF;
-    --c-danger: #FCA5A5;
-    --c-warning: #FBC56D;
-    --c-success: #7EDDA4;
-    --c-warn-bg: rgba(154, 91, 0, .24);
-    --c-info-bg: rgba(126, 168, 255, .16);
-    --c-ok-bg: rgba(15, 122, 67, .24);
-    --c-err-bg: rgba(180, 35, 24, .22);
-    --text-primary: #F4F7FB;
-    --text-secondary: #CBD5E1;
-    --text-muted: #A8B3C7;
-    --border: rgba(255, 255, 255, .14);
-    --border-focus: #7EA8FF;
-    --bg: #0B1222;
-    --bg-card: #121C32;
-    --bg-input: #121C32;
-  }
 }
 
 body {
@@ -93,10 +74,26 @@ body {
   font-size: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
-.message--success { background: var(--c-ok-bg);  border-color: #A8E6BF; color: var(--c-success); }
-.message--error   { background: var(--c-err-bg); border-color: #F3B7B2; color: var(--c-danger);  }
-.message--warning { background: var(--c-warn-bg);border-color: #F5D08A; color: var(--c-warning); }
-.message--info    { background: var(--c-info-bg); border-color: #B9CCFF; color: var(--c-accent);  }
+.message--success {
+  background: #E3F6EC !important;
+  border-color: #A8E6BF !important;
+  color: #064E2E !important;
+}
+.message--error {
+  background: #FDE8E7 !important;
+  border-color: #F3B7B2 !important;
+  color: #7A120C !important;
+}
+.message--warning {
+  background: #FFF4D6 !important;
+  border-color: #F5D08A !important;
+  color: #5F3700 !important;
+}
+.message--info {
+  background: #EAF1FF !important;
+  border-color: #B9CCFF !important;
+  color: #0B326F !important;
+}
 
 .message__close {
   background: none;
@@ -185,6 +182,85 @@ body {
 }
 .form-label-link:hover { text-decoration: underline; }
 
+.field-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.field-help {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="file"],
+select,
+textarea {
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  height: 38px;
+  line-height: 1.2;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--blue-mid);
+  box-shadow: 0 0 0 3px var(--blue-light);
+}
+
+select {
+  padding-right: 32px;
+  appearance: none;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235A6480' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+input[type="file"] {
+  height: auto;
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  line-height: 1.4;
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  color: #ffffff;
+  background: var(--c-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .form-input {
   width: 100%;
   height: 42px;
@@ -222,20 +298,23 @@ body {
   display: flex;
   align-items: center;
 }
-.input-with-action .form-input { padding-right: 3rem; }
+.input-with-action .form-input { padding-right: 84px; }
 .input-action-btn {
   position: absolute;
-  right: .4rem;
-  min-width: 34px;
-  height: 30px;
+  top: 6px;
+  right: 6px;
+  bottom: 6px;
+  min-width: 58px;
+  height: auto;
   background: var(--c-info-bg);
   border: none;
   cursor: pointer;
   color: var(--text-muted);
   display: flex;
   align-items: center;
-  padding: 4px;
-  border-radius: 4px;
+  justify-content: center;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
   transition: color var(--transition);
 }
 .input-action-btn:hover { color: var(--c-primary); }

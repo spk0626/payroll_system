@@ -206,6 +206,7 @@ class PasswordResetRequestView(View):
                 email_template_name="accounts/email/password_reset.txt",
                 html_email_template_name=self.email_template,
                 subject_template_name="accounts/email/password_reset_subject.txt",
+                extra_email_context={"COMPANY_NAME": settings.COMPANY_NAME},
             )
 
         # Always show success — never reveal whether the email exists.
