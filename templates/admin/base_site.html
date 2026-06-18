@@ -7,7 +7,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=40">
+<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=41">
 {% endblock %}
 
 {% block extrahead %}
@@ -68,16 +68,28 @@
         }
       });
 
+      document.querySelectorAll("div.breadcrumbs").forEach(function (breadcrumbs) {
+        breadcrumbs.childNodes.forEach(function (node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            node.textContent = node.textContent.replace(/›/g, " › ");
+          }
+        });
+      });
+
       var changelist = document.getElementById("changelist");
       var filter = document.getElementById("changelist-filter");
-      var toolbar = document.getElementById("toolbar");
+      var toolbar = document.getElementById("toolbar") || document.querySelector(".actions") || changelist;
       if (changelist && filter && toolbar && !document.querySelector(".admin-filter-toggle")) {
         var filterButton = document.createElement("button");
         filterButton.type = "button";
         filterButton.className = "admin-filter-toggle";
         filterButton.innerHTML = '<i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Filters';
         filterButton.setAttribute("aria-expanded", "false");
-        toolbar.appendChild(filterButton);
+        if (toolbar === changelist) {
+          changelist.insertBefore(filterButton, changelist.firstChild);
+        } else {
+          toolbar.appendChild(filterButton);
+        }
 
         filterButton.addEventListener("click", function () {
           var open = changelist.classList.toggle("admin-filter-open");

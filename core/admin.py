@@ -8,7 +8,7 @@ from .models import CompanySetting
 
 @admin.register(CompanySetting)
 class CompanySettingAdmin(ActionLabelMixin, admin.ModelAdmin):
-    fields = ["company_name", "logo", "logo_preview", "updated_at"]
+    fields = ["logo", "logo_preview", "updated_at"]
     readonly_fields = ["logo_preview", "updated_at"]
 
     def logo_preview(self, obj):

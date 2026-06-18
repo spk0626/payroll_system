@@ -145,8 +145,10 @@ a:hover {
 .brand-icon svg,
 .admin-brand__logo {
   display: block;
-  width: 50px;
-  height: 50px;
+  width: auto;
+  height: auto;
+  max-width: 50px;
+  max-height: 50px;
   object-fit: contain;
 }
 
@@ -264,6 +266,8 @@ div.breadcrumbs {
   min-height: 54px;
   display: flex;
   align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
   padding: 14px 32px;
   color: var(--text-secondary);
   background: var(--surface);
@@ -653,49 +657,29 @@ div.breadcrumbs a:visited {
 .changelink::before,
 .deletelink::before,
 .viewlink::before {
-  min-width: 20px;
-  height: 20px;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  margin-right: 7px;
-  border-radius: 5px;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: middle;
+  display: none !important;
+  content: none !important;
 }
 
 .addlink::before {
-  content: "+";
-  background: var(--green);
+  content: none;
 }
 
 .object-tools a.addlink::before {
-  min-width: 0;
-  height: auto;
-  margin-right: 8px;
-  border-radius: 0;
-  color: currentColor;
-  background: transparent;
-  font-size: 18px;
-  line-height: 1;
+  display: none !important;
+  content: none !important;
 }
 
 .changelink::before {
-  content: "E";
-  background: var(--blue);
+  content: none;
 }
 
 .deletelink::before {
-  content: "D";
-  background: var(--red);
+  content: none;
 }
 
 .viewlink::before {
-  content: "V";
-  background: var(--text-muted);
+  content: none;
 }
 
 .object-tools,
@@ -1303,6 +1287,23 @@ fieldset.aligned .form-row:has(.selector) > div {
   display: block;
 }
 
+.module.aligned .form-row:has(.breakdown-editor) > div,
+fieldset.aligned .form-row:has(.breakdown-editor) > div {
+  display: block;
+}
+
+.module.aligned .form-row:has(.breakdown-editor) label,
+fieldset.aligned .form-row:has(.breakdown-editor) label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.module.aligned .form-row:has(.breakdown-editor) .help,
+fieldset.aligned .form-row:has(.breakdown-editor) .help {
+  margin-top: 10px;
+}
+
 .selector {
   width: 100%;
   max-width: 1100px;
@@ -1493,17 +1494,29 @@ fieldset.aligned .form-row:has(.selector) > div {
 
 .breakdown-editor {
   width: 100%;
+  max-width: 980px;
   border-collapse: collapse;
+  margin-top: 8px;
 }
 
 .breakdown-editor th,
 .breakdown-editor td {
-  padding: 8px;
+  padding: 12px;
   border: 0.5px solid var(--border);
 }
 
 .breakdown-editor__new-row td {
   background: var(--surface2);
+}
+
+.breakdown-editor input[type="text"] {
+  width: 100% !important;
+  max-width: none;
+}
+
+.breakdown-editor-add-row {
+  min-height: 38px;
+  margin-top: 12px;
 }
 
 @media (max-width: 980px) {

@@ -124,6 +124,10 @@ body {
   margin-bottom: 16px;
 }
 
+.slip-section + .slip-section {
+  margin-top: 22px;
+}
+
 .slip-section__title {
   margin-bottom: 8px;
   padding-top: 2px;

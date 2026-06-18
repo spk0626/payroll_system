@@ -32,7 +32,6 @@ def company_settings(request):
         from .models import CompanySetting
 
         setting = CompanySetting.load()
-        company_name = setting.company_name or company_name
         if setting.logo:
             logo_url = setting.logo.url
     except Exception:

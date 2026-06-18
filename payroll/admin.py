@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
 from core.admin_mixins import ActionLabelMixin
 from core.constants import MONTHS, BatchStatus, EmailStatus
@@ -73,13 +74,38 @@ class BreakdownTableWidget(forms.Widget):
                     'placeholder="0.00"></td></tr>'
                 )
             )
-        return format_html(
+        table = format_html(
             '<table class="breakdown-editor"><thead><tr><th>Description</th>'
             '<th>Amount</th></tr></thead><tbody>{}</tbody></table>'
+            '<button type="button" class="button breakdown-editor-add-row" '
+            'data-breakdown-add-row>Add row</button>'
             '<p class="help">Edit existing rows or use the blank rows at the end '
             'to add new salary rows. Leave unused labels blank.</p>',
             format_html_join("", "{}", ((row,) for row in rows)),
         )
+        script = mark_safe(
+            '<script>'
+            '(function(){'
+            'document.querySelectorAll("[data-breakdown-add-row]").forEach(function(button){'
+            'if(button.dataset.ready){return;}'
+            'button.dataset.ready="1";'
+            'button.addEventListener("click",function(){'
+            'var table=button.previousElementSibling;'
+            'if(!table){return;}'
+            'var body=table.querySelector("tbody");'
+            'var row=document.createElement("tr");'
+            'row.className="breakdown-editor__new-row";'
+            'row.innerHTML='
+            '"<td><input type=\\"text\\" name=\\"breakdown_label\\" placeholder=\\"Add salary row label\\"></td>" +'
+            '"<td><input type=\\"text\\" name=\\"breakdown_amount\\" placeholder=\\"0.00\\"></td>";'
+            'body.appendChild(row);'
+            'row.querySelector("input").focus();'
+            '});'
+            '});'
+            '})();'
+            '</script>'
+        )
+        return format_html("{}{}", table, script)
 
     def value_from_datadict(self, data, files, name):
         labels = data.getlist("breakdown_label")
