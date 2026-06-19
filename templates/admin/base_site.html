@@ -7,7 +7,13 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=41">
+<link rel="stylesheet" href="{% static 'css/admin_portal.css' %}?v=42">
+<style>
+  .related-widget-wrapper-link img{display:none!important}
+  .related-widget-wrapper-link::after{content:attr(title)}
+  .related-widget-wrapper-link.related-widget-wrapper-link--ready::after{content:none}
+  .related-widget-wrapper{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px}
+</style>
 {% endblock %}
 
 {% block extrahead %}
@@ -76,6 +82,25 @@
         });
       });
 
+      document.querySelectorAll(".related-widget-wrapper-link").forEach(function (link) {
+        var title = (link.getAttribute("title") || "").toLowerCase();
+        var label = "";
+        if (title.indexOf("change") !== -1) {
+          label = "Change";
+        } else if (title.indexOf("add") !== -1) {
+          label = "Add";
+        } else if (title.indexOf("delete") !== -1) {
+          label = "Delete";
+        } else if (title.indexOf("view") !== -1) {
+          label = "View";
+        }
+        if (label) {
+          link.textContent = label;
+          link.classList.add("related-widget-wrapper-link--ready");
+          link.setAttribute("aria-label", link.getAttribute("title"));
+        }
+      });
+
       var changelist = document.getElementById("changelist");
       var filter = document.getElementById("changelist-filter");
       var toolbar = document.getElementById("toolbar") || document.querySelector(".actions") || changelist;
@@ -83,7 +108,7 @@
         var filterButton = document.createElement("button");
         filterButton.type = "button";
         filterButton.className = "admin-filter-toggle";
-        filterButton.innerHTML = '<i class="ti ti-adjustments-horizontal" aria-hidden="true"></i> Filters';
+        filterButton.textContent = "Filters";
         filterButton.setAttribute("aria-expanded", "false");
         if (toolbar === changelist) {
           changelist.insertBefore(filterButton, changelist.firstChild);
@@ -96,6 +121,12 @@
           filterButton.setAttribute("aria-expanded", String(open));
         });
       }
+
+      document.querySelectorAll(".clearable-file-input label").forEach(function (label) {
+        if (label.textContent.trim() === "Clear") {
+          label.textContent = "Remove current file";
+        }
+      });
 
     });
   })();

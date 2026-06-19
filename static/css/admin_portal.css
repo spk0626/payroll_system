@@ -266,7 +266,7 @@ div.breadcrumbs {
   min-height: 54px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   padding: 14px 32px;
   color: var(--text-secondary);
@@ -296,7 +296,7 @@ div.breadcrumbs a:visited {
 #content {
   width: min(1600px, calc(100% - 56px));
   margin: 0 auto;
-  padding: 22px 28px 32px;
+  padding: 28px 32px 36px;
   background: var(--bg) !important;
 }
 
@@ -306,7 +306,7 @@ div.breadcrumbs a:visited {
 }
 
 #content h1 {
-  margin: 0 0 12px;
+  margin: 6px 0 20px;
   color: var(--text-primary);
   font-size: 24px;
   line-height: 1.15;
@@ -316,6 +316,8 @@ div.breadcrumbs a:visited {
 
 #content h2,
 #content h3 {
+  margin-top: 18px;
+  margin-bottom: 12px;
   color: var(--text-primary);
   font-weight: 600;
   letter-spacing: 0;
@@ -572,7 +574,7 @@ div.breadcrumbs a:visited {
 .module,
 .inline-group {
   overflow: visible;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .module h2,
@@ -580,7 +582,7 @@ div.breadcrumbs a:visited {
 .inline-group h2,
 #changelist-filter h2 {
   margin: 0;
-  padding: 14px 16px;
+  padding: 18px 20px;
   color: var(--text-muted);
   background: var(--surface2) !important;
   border-bottom: 0.5px solid var(--border);
@@ -610,7 +612,7 @@ div.breadcrumbs a:visited {
 .module table td,
 #changelist .results th,
 #changelist .results td {
-  padding: 12px 14px;
+  padding: 14px 18px;
   border-bottom: 0.5px solid var(--border);
   color: var(--text-primary);
   vertical-align: middle;
@@ -897,7 +899,7 @@ input[type="file"] {
   height: auto;
   display: flex;
   align-items: center;
-  padding: 7px 10px;
+  padding: 8px 10px;
   line-height: 1.4;
 }
 
@@ -914,17 +916,24 @@ input[type="file"]::file-selector-button {
 }
 
 .file-upload {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px 14px;
   max-width: 760px;
+  padding: 12px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   margin: 0;
   color: var(--text-secondary);
+  line-height: 1.5;
 }
 
 .file-upload br {
-  display: none;
+  display: block;
+  flex-basis: 100%;
+  content: "";
 }
 
 .file-upload a {
@@ -935,8 +944,12 @@ input[type="file"]::file-selector-button {
 .clearable-file-input {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 8px;
+  gap: 8px;
+  margin-left: 0;
+  padding: 6px 9px;
+  border: 0.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface2);
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -978,6 +991,7 @@ label,
 
 .form-row {
   border-bottom: 1px solid var(--border);
+  padding: 16px;
 }
 
 .form-row select + select {
@@ -1258,7 +1272,7 @@ fieldset.aligned .form-row > div {
   display: grid;
   grid-template-columns: minmax(140px, 220px) minmax(240px, 520px);
   align-items: center;
-  gap: 10px 18px;
+  gap: 12px 22px;
 }
 
 .module.aligned .form-row label,
@@ -1272,7 +1286,7 @@ fieldset.aligned .form-row label {
 .module.aligned .form-row .help,
 fieldset.aligned .form-row .help {
   grid-column: 2;
-  margin: 0;
+  margin: 4px 0 0;
 }
 
 .module.aligned .form-row input,
@@ -1280,6 +1294,46 @@ fieldset.aligned .form-row .help {
 fieldset.aligned .form-row input,
 fieldset.aligned .form-row select {
   width: min(100%, 520px);
+}
+
+.related-widget-wrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.related-widget-wrapper select,
+.related-widget-wrapper input {
+  flex: 1 1 320px;
+}
+
+.related-widget-wrapper-link {
+  min-height: 34px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--blue) !important;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-decoration: none !important;
+}
+
+.related-widget-wrapper-link img {
+  display: none !important;
+}
+
+.related-widget-wrapper-link::after {
+  content: attr(title);
+}
+
+.related-widget-wrapper-link.related-widget-wrapper-link--ready::after {
+  content: none;
 }
 
 .module.aligned .form-row:has(.selector) > div,
@@ -1501,7 +1555,7 @@ fieldset.aligned .form-row:has(.breakdown-editor) .help {
 
 .breakdown-editor th,
 .breakdown-editor td {
-  padding: 12px;
+  padding: 14px;
   border: 0.5px solid var(--border);
 }
 
@@ -1516,6 +1570,14 @@ fieldset.aligned .form-row:has(.breakdown-editor) .help {
 
 .breakdown-editor-add-row {
   min-height: 38px;
+  margin-top: 12px;
+}
+
+.breakdown-editor-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 12px;
 }
 

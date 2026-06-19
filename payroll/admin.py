@@ -77,10 +77,14 @@ class BreakdownTableWidget(forms.Widget):
         table = format_html(
             '<table class="breakdown-editor"><thead><tr><th>Description</th>'
             '<th>Amount</th></tr></thead><tbody>{}</tbody></table>'
+            '<div class="breakdown-editor-actions">'
             '<button type="button" class="button breakdown-editor-add-row" '
             'data-breakdown-add-row>Add row</button>'
+            '<button type="submit" name="_continue" class="button default">'
+            'Save salary rows</button>'
+            '</div>'
             '<p class="help">Edit existing rows or use the blank rows at the end '
-            'to add new salary rows. Leave unused labels blank.</p>',
+            'to add new salary rows. Use Save salary rows to save changes and stay on this page.</p>',
             format_html_join("", "{}", ((row,) for row in rows)),
         )
         script = mark_safe(
@@ -90,7 +94,8 @@ class BreakdownTableWidget(forms.Widget):
             'if(button.dataset.ready){return;}'
             'button.dataset.ready="1";'
             'button.addEventListener("click",function(){'
-            'var table=button.previousElementSibling;'
+            'var actions=button.closest(".breakdown-editor-actions");'
+            'var table=actions ? actions.previousElementSibling : button.previousElementSibling;'
             'if(!table){return;}'
             'var body=table.querySelector("tbody");'
             'var row=document.createElement("tr");'
