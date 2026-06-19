@@ -59,10 +59,10 @@ def _draw_payslip_page(pdf, paysheet) -> None:
     pdf.setFont("Helvetica", 11)
     pdf.drawCentredString(width / 2, y - 17, f"{month_name} {paysheet.year}")
 
-    y -= 48
+    y -= 52
     _draw_info_box(pdf, paysheet, margin, y, width - (2 * margin))
 
-    y -= 96
+    y -= 106
     rows = _breakdown_rows(paysheet)
     earnings = [row for row in rows if not row["is_deduction"]]
     deductions = [row for row in rows if row["is_deduction"]]
@@ -76,7 +76,7 @@ def _draw_payslip_page(pdf, paysheet) -> None:
         currency, row_height, font_size, primary, blue_soft, colors.black,
         paysheet, month_name, width, height,
     )
-    y -= 18
+    y -= 24
     y = _draw_breakdown_section(
         pdf, "Deductions", deductions, margin, y, table_width, amount_x,
         currency, row_height, font_size, primary, blue_soft, red,
@@ -105,7 +105,7 @@ def _draw_breakdown_section(
     pdf.setFillColor(primary)
     pdf.setFont("Helvetica-Bold", 10)
     pdf.drawString(margin, y, title)
-    y -= 12
+    y -= 16
 
     y = _draw_table_header(pdf, margin, y, table_width, amount_x, currency, row_height, primary, header_fill)
 
@@ -167,7 +167,7 @@ def _draw_info_box(pdf, paysheet, x, y, width) -> None:
     employee = paysheet.employee
     pdf.setFillColor(colors.HexColor("#f5f5f5"))
     pdf.setStrokeColor(colors.HexColor("#d0d0d0"))
-    pdf.rect(x, y - 78, width, 78, fill=1, stroke=1)
+    pdf.rect(x, y - 86, width, 86, fill=1, stroke=1)
 
     left = [
         ("Employee No:", employee.employee_number),
@@ -180,8 +180,8 @@ def _draw_info_box(pdf, paysheet, x, y, width) -> None:
         ("Branch:", employee.branch.name),
         ("Account Name:", employee.bank_account_name),
     ]
-    _draw_pairs(pdf, left, x + 14, y - 18)
-    _draw_pairs(pdf, right, x + (width / 2) + 14, y - 18)
+    _draw_pairs(pdf, left, x + 16, y - 22)
+    _draw_pairs(pdf, right, x + (width / 2) + 16, y - 22)
 
 
 def _draw_pairs(pdf, pairs, x, y) -> None:
@@ -191,7 +191,7 @@ def _draw_pairs(pdf, pairs, x, y) -> None:
         pdf.drawString(x, y, label)
         pdf.setFont("Helvetica", 9)
         pdf.drawString(x + 86, y, _clip(str(value), 38))
-        y -= 16
+        y -= 17
 
 
 def _draw_logo(pdf, x, y) -> None:

@@ -75,7 +75,7 @@ body {
 
 .slip-title {
   text-align: center;
-  margin: 12px 0 18px;
+  margin: 16px 0 22px;
 }
 
 .slip-title h1 {
@@ -95,9 +95,9 @@ body {
 .slip-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5px 28px;
-  padding: 16px 18px;
-  margin-bottom: 24px;
+  gap: 7px 32px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
   border: 1px solid #d0d8e4;
   border-radius: 6px;
   background: #f5f7fb;
@@ -106,7 +106,9 @@ body {
 
 .slip-info__item {
   display: flex;
+  align-items: center;
   gap: 8px;
+  min-height: 20px;
 }
 
 .slip-info__label {
@@ -121,16 +123,16 @@ body {
 }
 
 .slip-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .slip-section + .slip-section {
-  margin-top: 28px;
+  margin-top: 34px;
 }
 
 .slip-section__title {
-  margin-bottom: 10px;
-  padding-top: 6px;
+  margin-bottom: 12px;
+  padding-top: 10px;
   color: #0243B0;
   font-size: 14px;
   font-weight: 700;
@@ -146,7 +148,7 @@ body {
 }
 
 .slip-table thead th {
-  padding: 7px 10px;
+  padding: 9px 12px;
   color: #0b326f;
   font-size: 11px;
   font-weight: 700;
@@ -166,7 +168,7 @@ body {
 }
 
 .slip-table tbody td {
-  padding: 7px 10px;
+  padding: 9px 12px;
   border-bottom: 1px solid #e0e7ef;
   font-size: 11.5px;
 }

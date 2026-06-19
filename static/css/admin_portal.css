@@ -305,8 +305,16 @@ div.breadcrumbs a:visited {
   padding-top: 18px;
 }
 
+.change-form.model-paysheet #content h1 {
+  margin-bottom: 10px;
+}
+
+.change-form.model-paysheet #content-main {
+  margin-top: 0;
+}
+
 #content h1 {
-  margin: 6px 0 20px;
+  margin: 6px 0 16px;
   color: var(--text-primary);
   font-size: 24px;
   line-height: 1.15;
@@ -1349,7 +1357,7 @@ fieldset.aligned .form-row:has(.breakdown-editor) > div {
 .module.aligned .form-row:has(.breakdown-editor) label,
 fieldset.aligned .form-row:has(.breakdown-editor) label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   font-weight: 600;
 }
 
@@ -1550,13 +1558,22 @@ fieldset.aligned .form-row:has(.breakdown-editor) .help {
   width: 100%;
   max-width: 980px;
   border-collapse: collapse;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .breakdown-editor th,
 .breakdown-editor td {
-  padding: 14px;
+  padding: 16px 18px;
   border: 0.5px solid var(--border);
+}
+
+.breakdown-editor th {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.breakdown-editor td {
+  vertical-align: middle;
 }
 
 .breakdown-editor__new-row td {
@@ -1566,6 +1583,8 @@ fieldset.aligned .form-row:has(.breakdown-editor) .help {
 .breakdown-editor input[type="text"] {
   width: 100% !important;
   max-width: none;
+  min-height: 42px;
+  padding: 10px 12px;
 }
 
 .breakdown-editor-add-row {
@@ -1578,7 +1597,7 @@ fieldset.aligned .form-row:has(.breakdown-editor) .help {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 @media (max-width: 980px) {

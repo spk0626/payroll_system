@@ -110,7 +110,7 @@ class PaySheet(models.Model):
 
     def __str__(self) -> str:
         month_name = dict(MONTHS).get(self.month, str(self.month))
-        return f"{self.employee.full_name} — {month_name} {self.year}"
+        return f"{self.employee.full_name} ({month_name} {self.year})"
 
     def get_month_display_name(self) -> str:
         return dict(MONTHS).get(self.month, str(self.month))
